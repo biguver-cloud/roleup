@@ -1,12 +1,18 @@
 # AIとの会話処理を管理するファイル
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from prompts import build_roleplay_prompt, build_feedback_prompt
+from rag import build_vectorstore, search_knowledge
+
+# アプリ起動時にベクトルDBを構築する
+print("ベクトルDB構築中...")
+vectorstore = build_vectorstore()
+print("ベクトルDB構築完了！")
 
 # AIモデルの設定
 llm = ChatOpenAI(
-    model="gpt-4o-mini",  # 使用するモデル
-    temperature=0.7,       # 返答のランダム性（0〜1）高いほど多様な返答になる
+    model="gpt-4o-mini",
+    temperature=0.7,
 )
 
 # ロールプレイの返答を生成する関数
@@ -16,8 +22,20 @@ def get_roleplay_response(
     conversation_history: list
 ) -> str:
 
+    # 直近のオペレーターの発言を取得（RAG検索用）
+    query = ""
+    for message in reversed(conversation_history):
+        if isinstance(message, HumanMessage):
+            query = message.content
+            break
+
+    # ナレッジを検索（発言がある場合のみ）
+    knowledge = ""
+    if query:
+        knowledge = search_knowledge(vectorstore, query)
+
     # システムプロンプトを組み立てる
-    system_prompt = build_roleplay_prompt(difficulty, scenario)
+    system_prompt = build_roleplay_prompt(difficulty, scenario, knowledge)
 
     # AIに渡すメッセージを組み立てる
     messages = [SystemMessage(content=system_prompt)] + conversation_history

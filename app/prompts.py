@@ -17,9 +17,19 @@ SCENARIO_SETTINGS = {
 }
 
 # ロールプレイ用のプロンプトを組み立てる関数
-def build_roleplay_prompt(difficulty: str, scenario: str) -> str:
+def build_roleplay_prompt(difficulty: str, scenario: str, knowledge: str = "") -> str:
     difficulty_text = DIFFICULTY_SETTINGS[difficulty]
     scenario_text = SCENARIO_SETTINGS[scenario]
+
+    # ナレッジがある場合は追加する
+    knowledge_section = ""
+    if knowledge:
+        knowledge_section = f"""
+【参考ナレッジ】
+以下はデモSIMのサービス情報です。
+顧客としてこの情報を「なんとなく知っている」程度で会話に活かしてください。
+{knowledge}
+"""
 
     return f"""
 あなたはロールプレイの顧客役です。
@@ -30,12 +40,14 @@ def build_roleplay_prompt(difficulty: str, scenario: str) -> str:
 
 【状況】
 {scenario_text}
-
+{knowledge_section}
 【ルール】
 ・顧客役として自然に会話してください。
 ・オペレーターの対応に応じて反応を変えてください。
 ・絶対に顧客役を外れないでください。
+・ナレッジの情報は「なんとなく知っている」程度の使い方にしてください。
 """
+
 
 # フィードバック生成用のプロンプトを組み立てる関数
 def build_feedback_prompt(conversation: str) -> str:
