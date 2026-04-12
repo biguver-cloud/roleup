@@ -27,11 +27,30 @@
 | 技術 | 用途 |
 |---|---|
 | Python | バックエンド全体 |
-| LangChain | 会話管理・フィードバック生成 |
-| FastAPI | APIサーバー |
 | Chainlit | チャットUI・会話フロー制御 |
-| Docker | コンテナ化 |
-| GCP Cloud Run | デプロイ |
+| LangChain | 会話管理・フィードバック生成 |
+| langchain-openai | OpenAI APIとの連携 |
+| langchain-community | FAISSベクトルストア連携 |
+| OpenAI GPT-4o-mini | 顧客役AI・フィードバック生成 |
+| FAISS | ベクトル検索（RAG） |
+| PyMuPDF | PDFナレッジの読み込み |
+
+## ディレクトリ構成
+
+```
+roleup/
+├── app/
+│   ├── main.py        # Chainlitエントリーポイント・UI制御
+│   ├── agent.py       # AI応答・フィードバック生成ロジック
+│   ├── prompts.py     # プロンプト管理（ロールプレイ・フィードバック）
+│   └── rag.py         # PDFナレッジ読み込み・ベクトル検索
+├── date/
+│   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
+├── .chainlit/         # Chainlit設定ファイル
+├── chainlit.md        # Chainlitウェルカムメッセージ
+├── requirements.txt   # 依存パッケージ一覧
+└── README.md
+```
 
 ## 工夫した点
 
