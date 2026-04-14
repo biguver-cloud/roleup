@@ -22,6 +22,18 @@
 客観的なフィードバックを得る手段が限られていました。
 そこで、新人から経験者まで幅広く活用できるトレーニングツールを開発しました。
 
+## 🖥 使用環境
+
+| 項目 | 内容 |
+|---|---|
+| OS | Windows 11（Windows環境で開発・動作確認） |
+| Python | 3.11 |
+| フレームワーク | Chainlit |
+| LLM | OpenAI API（LangChain経由） |
+| ベクトルDB | FAISS |
+| 主なライブラリ | LangChain, langchain-openai, langchain-community, PyMuPDF, FAISS |
+| デプロイ | 未定 |
+
 ## 🛠️ 技術スタック
 
 | 技術 | 用途 |
