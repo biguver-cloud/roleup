@@ -64,6 +64,50 @@ roleup/
 └── README.md
 ```
 
+## ⚙️ セットアップ手順
+
+### 1. リポジトリをクローン
+
+```bash
+git clone https://github.com/biguver-cloud/roleup.git
+cd roleup
+```
+
+### 2. 仮想環境を作成・有効化
+
+```bash
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+```
+
+### 3. 依存パッケージをインストール
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. 環境変数を設定
+
+プロジェクトルートに `.env` ファイルを作成し、OpenAI APIキーを設定してください。
+
+```
+OPENAI_API_KEY=your_api_key_here
+```
+
+### 5. PDFナレッジを配置
+
+`date/pdfs/` フォルダにRAG用のPDFファイルを配置してください。
+
+### 6. アプリを起動
+
+```bash
+chainlit run app/main.py
+```
+
+ブラウザで `http://localhost:8000` が開きます。
+
 ## ✨ 工夫した点
 
 - 💼 難易度ごとの顧客の態度設計に現場経験を活かした
