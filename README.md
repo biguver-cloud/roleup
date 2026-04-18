@@ -47,6 +47,32 @@
 | FAISS | ベクトル検索（RAG） |
 | PyMuPDF | PDFナレッジの読み込み |
 
+## 🏗️ アーキテクチャ図
+
+```mermaid
+flowchart TD
+    User["👤 ユーザー（オペレーター）"]
+    UI["🖥️ Chainlit UI\nmain.py"]
+    Agent["🤖 AIエージェント\nagent.py"]
+    Prompts["📝 プロンプト管理\nprompts.py"]
+    RAG["🔍 RAG検索\nrag.py"]
+    PDF["📄 PDFナレッジ\ndate/pdfs/"]
+    FAISS["🗄️ FAISSベクトルDB"]
+    OpenAI["☁️ OpenAI API\nGPT-4o-mini"]
+
+    User -->|メッセージ送信| UI
+    UI -->|応答生成リクエスト| Agent
+    UI -->|フィードバックリクエスト| Agent
+    Agent -->|プロンプト構築| Prompts
+    Agent -->|ナレッジ検索| RAG
+    RAG -->|PDF読み込み| PDF
+    RAG -->|ベクトル検索| FAISS
+    Agent -->|API呼び出し| OpenAI
+    OpenAI -->|応答・フィードバック| Agent
+    Agent -->|結果返却| UI
+    UI -->|表示| User
+```
+
 ## 📁 ディレクトリ構成
 
 ```
