@@ -15,15 +15,15 @@
 4. ✅ 「対応終了」と入力するとフィードバックが表示される
 
 
-▼ 立ち上がり画面
+▼ 起動時の画面
 
 <img width="1919" height="864" alt="スクリーンショット 2026-04-19 182437" src="https://github.com/user-attachments/assets/9491189e-272e-44b0-807d-7571120d69e6" />
 
-▼ 実際にシュミレーションしている画面
+▼ シミュレーション実行中の画面
 
 <img width="1900" height="647" alt="スクリーンショット 2026-04-15 153909" src="https://github.com/user-attachments/assets/a8f7b12c-f4ff-4e7d-a493-08eae4c75dbf" />
 
-▼ フィードバック画面
+▼ フィードバック表示画面
 
 <img width="1899" height="708" alt="スクリーンショット 2026-04-15 154007" src="https://github.com/user-attachments/assets/32844a13-ecc9-432d-81fc-6a7ac5815403" />
 
