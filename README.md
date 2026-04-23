@@ -147,6 +147,16 @@ chainlit run app/main.py
 
 ブラウザで `http://localhost:8000` が開きます。
 
+### Docker で起動する場合
+
+```bash
+# イメージをビルド
+docker build -t roleup .
+
+# コンテナを起動
+docker run --env-file .env -p 8000:8000 roleup
+```
+
 ## ✨ 工夫した点
 
 - 💼 難易度ごとの顧客の態度設計に現場経験を活かした
