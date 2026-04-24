@@ -168,3 +168,11 @@ docker run --env-file .env -p 8000:8000 roleup
 - 🏥 業種別シナリオの追加（医療・金融・ECなど）
 - 📊 セッションごとのスコア履歴表示
 - 👥 育成担当者向けの受講者管理画面
+
+## 👤 Author
+
+[biguver-cloud](https://github.com/biguver-cloud)
+
+## 📄 License
+
+This project is for educational and demonstration purposes only.
