@@ -65,15 +65,18 @@
 ```mermaid
 flowchart TD
     User["👤 ユーザー（オペレーター）"]
-    UI["🖥️ Chainlit UI\nmain.py"]
-    Agent["🤖 AIエージェント\nagent.py"]
-    Prompts["📝 プロンプト管理\nprompts.py"]
-    RAG["🔍 RAG検索\nrag.py"]
-    PDF["📄 PDFナレッジ\ndate/pdfs/"]
-    FAISS["🗄️ FAISSベクトルDB"]
     OpenAI["☁️ OpenAI API\nGPT-4o-mini"]
 
-    User -->|メッセージ送信| UI
+    subgraph Docker["🐳 Docker コンテナ"]
+        UI["🖥️ Chainlit UI\nmain.py"]
+        Agent["🤖 AIエージェント\nagent.py"]
+        Prompts["📝 プロンプト管理\nprompts.py"]
+        RAG["🔍 RAG検索\nrag.py"]
+        PDF["📄 PDFナレッジ\ndate/pdfs/"]
+        FAISS["🗄️ FAISSベクトルDB"]
+    end
+
+    User -->|メッセージ送信\nlocalhost:8000| UI
     UI -->|応答生成リクエスト| Agent
     UI -->|フィードバックリクエスト| Agent
     Agent -->|プロンプト構築| Prompts
