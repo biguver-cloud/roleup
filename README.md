@@ -25,6 +25,23 @@
 
 <img width="1899" height="708" alt="スクリーンショット 2026-04-15 154007" src="https://github.com/user-attachments/assets/32844a13-ecc9-432d-81fc-6a7ac5815403" />
 
+## 📁 ディレクトリ構成
+
+```
+roleup/
+├── app/
+│   ├── main.py        # Chainlitエントリーポイント・UI制御
+│   ├── agent.py       # AI応答・フィードバック生成ロジック
+│   ├── prompts.py     # プロンプト管理（ロールプレイ・フィードバック）
+│   └── rag.py         # PDFナレッジ読み込み・ベクトル検索
+├── date/
+│   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
+├── .chainlit/         # Chainlit設定ファイル
+├── chainlit.md        # Chainlitウェルカムメッセージ
+├── requirements.txt   # 依存パッケージ一覧
+└── README.md
+```
+
 ## 💡 設計背景
 
 前職でチャット・コールオペレーターの新人育成を担当していた経験から、
@@ -61,6 +78,7 @@
 ## 🏗️ アーキテクチャ図
 
 ```mermaid
+
 flowchart TD
     User["👤 ユーザー（オペレーター）"]
     OpenAI["☁️ OpenAI API\nGPT-4o-mini"]
@@ -85,23 +103,6 @@ flowchart TD
     OpenAI -->|応答・フィードバック| Agent
     Agent -->|結果返却| UI
     UI -->|表示| User
-```
-
-## 📁 ディレクトリ構成
-
-```
-roleup/
-├── app/
-│   ├── main.py        # Chainlitエントリーポイント・UI制御
-│   ├── agent.py       # AI応答・フィードバック生成ロジック
-│   ├── prompts.py     # プロンプト管理（ロールプレイ・フィードバック）
-│   └── rag.py         # PDFナレッジ読み込み・ベクトル検索
-├── date/
-│   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
-├── .chainlit/         # Chainlit設定ファイル
-├── chainlit.md        # Chainlitウェルカムメッセージ
-├── requirements.txt   # 依存パッケージ一覧
-└── README.md
 ```
 
 ## ⚙️ セットアップ手順
