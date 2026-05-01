@@ -178,3 +178,13 @@ docker run --env-file .env -p 8000:8000 roleup
 ## 📄 License
 
 This project is for educational and demonstration purposes only.
+
+本プロジェクトは **学習・ポートフォリオ目的** です。
+実在の企業・サービスは含まれていません。
+
+実運用時に追加で必要な対応：
+
+- 🔐 認証・認可
+- 📋 ログ管理
+- 🙈 個人情報マスキング
+- 🛡️ プロンプト・回答制御の強化
