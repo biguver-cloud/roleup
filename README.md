@@ -131,7 +131,11 @@ pip install -r requirements.txt
 
 ### 4. 環境変数を設定
 
-プロジェクトルートに `.env` ファイルを作成し、OpenAI APIキーを設定してください。
+`.env.example` をコピーして `.env` を作成し、OpenAI APIキーを設定してください。
+
+```bash
+cp .env.example .env
+```
 
 ```
 OPENAI_API_KEY=your_api_key_here
