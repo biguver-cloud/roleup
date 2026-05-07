@@ -45,17 +45,10 @@ roleup/
 │   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
 ├── .chainlit/         # Chainlit設定ファイル
 ├── chainlit.md        # Chainlitウェルカムメッセージ
+├── Dockerfile         # Dockerイメージビルド定義
 ├── requirements.txt   # 依存パッケージ一覧
 └── README.md
 ```
-
-## 💡 設計背景
-
-前職でチャット・コールオペレーターの新人育成を担当していた経験から、
-ロールプレイ練習の機会が少ないという課題を感じていました。
-また、経験者であっても成績が伸び悩む場面では、
-客観的なフィードバックを得る手段が限られていました。
-そこで、新人から経験者まで幅広く活用できるトレーニングツールを開発しました。
 
 ## 🖥 使用環境
 
@@ -66,6 +59,7 @@ roleup/
 | フレームワーク | Chainlit |
 | LLM | OpenAI API（LangChain経由） |
 | ベクトルDB | FAISS |
+| コンテナ | Docker |
 | 主なライブラリ | LangChain, langchain-openai, langchain-community, PyMuPDF, FAISS |
 | デプロイ | 未定 |
 
@@ -81,6 +75,7 @@ roleup/
 | OpenAI GPT-4o-mini | 顧客役AI・フィードバック生成 |
 | FAISS | ベクトル検索（RAG） |
 | PyMuPDF | PDFナレッジの読み込み |
+| Docker | アプリケーションのコンテナ化・環境統一 |
 
 ## 🏗️ アーキテクチャ図
 
