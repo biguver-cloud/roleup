@@ -12,25 +12,17 @@
 - **RAG（検索拡張生成）** を採用し、社内マニュアルなどのPDFナレッジを参照しながら応答を生成
 - トレーナー不在でも、いつでも・何度でも練習できる **自己学習型**の設計
 
-## 🚀 使い方
+## 🎓 目的
 
-1. 🎚️ 難易度を選択する（初級・中級・上級）
-2. 📋 シナリオを選択する（解約引き止め・請求トラブルなど）
-3. 💬 顧客役AIとチャットで模擬対応を行う
-4. ✅ 「対応終了」と入力するとフィードバックが表示される
+- **新人オペレーターの研修** — 実際の顧客対応を想定したロールプレイを通じて、現場に出る前にスキルを身につけられる
+- **練習機会不足の解消** — トレーナーや相手役がいなくても、いつでも・何度でも反復練習できる環境を提供する
+- **経験者の応対品質向上** — 上級難易度のシナリオで難易度の高い対応を繰り返し練習し、さらなるスキルアップを図れる
 
+## ✨ 工夫した点
 
-▼ 起動時の画面
-
-<img width="1919" height="864" alt="スクリーンショット 2026-04-19 182437" src="https://github.com/user-attachments/assets/9491189e-272e-44b0-807d-7571120d69e6" />
-
-▼ シミュレーション実行中の画面
-
-<img width="1900" height="647" alt="スクリーンショット 2026-04-15 153909" src="https://github.com/user-attachments/assets/a8f7b12c-f4ff-4e7d-a493-08eae4c75dbf" />
-
-▼ フィードバック表示画面
-
-<img width="1899" height="708" alt="スクリーンショット 2026-04-15 154007" src="https://github.com/user-attachments/assets/32844a13-ecc9-432d-81fc-6a7ac5815403" />
+- 💼 難易度ごとの顧客の態度設計に現場経験を活かした
+- 📈 初級から上級まで段階的な難易度を設けることで新人から経験者まで幅広く対応できる設計にした
+- 🎭 シナリオは実務で頻出の場面（解約・請求・クレーム・新規契約）を厳選した
 
 ## 📁 ディレクトリ構成
 
@@ -49,19 +41,6 @@ roleup/
 ├── requirements.txt   # 依存パッケージ一覧
 └── README.md
 ```
-
-## 🖥 使用環境
-
-| 項目 | 内容 |
-|---|---|
-| OS | Windows 11（Windows環境で開発・動作確認） |
-| Python | 3.11 |
-| フレームワーク | Chainlit |
-| LLM | OpenAI API（LangChain経由） |
-| ベクトルDB | FAISS |
-| コンテナ | Docker |
-| 主なライブラリ | LangChain, langchain-openai, langchain-community, PyMuPDF, FAISS |
-| デプロイ | 未定 |
 
 ## 🛠️ 技術スタック
 
@@ -109,67 +88,57 @@ flowchart TD
 
 ## ⚙️ セットアップ手順
 
-### 1. リポジトリをクローン
-
 ```bash
 git clone https://github.com/biguver-cloud/roleup.git
 cd roleup
-```
-
-### 2. 仮想環境を作成・有効化
-
-```bash
 python -m venv venv
-
-# Windows
-venv\Scripts\activate
-```
-
-### 3. 依存パッケージをインストール
-
-```bash
+venv\Scripts\activate        # Windows
 pip install -r requirements.txt
+cp .env.example .env         # .env を開いて OPENAI_API_KEY を入力
+chainlit run app/main.py     # http://localhost:8000
 ```
 
-### 4. 環境変数を設定
+> `date/pdfs/` にRAG用のPDFを配置してから起動してください。
 
-`.env.example` をコピーして `.env` を作成し、OpenAI APIキーを設定してください。
+**Docker を使う場合**
 
 ```bash
-cp .env.example .env
-```
-
-```
-OPENAI_API_KEY=your_api_key_here
-```
-
-### 5. PDFナレッジを配置
-
-`date/pdfs/` フォルダにRAG用のPDFファイルを配置してください。
-
-### 6. アプリを起動
-
-```bash
-chainlit run app/main.py
-```
-
-ブラウザで `http://localhost:8000` が開きます。
-
-### Docker で起動する場合
-
-```bash
-# イメージをビルド
 docker build -t roleup .
-
-# コンテナを起動
 docker run --env-file .env -p 8000:8000 roleup
 ```
 
-## ✨ 工夫した点
+## 🚀 使い方
 
-- 💼 難易度ごとの顧客の態度設計に現場経験を活かした
-- 📈 初級から上級まで段階的な難易度を設けることで新人から経験者まで幅広く対応できる設計にした
-- 🎭 シナリオは実務で頻出の場面（解約・請求・クレーム・新規契約）を厳選した
+1. 🎚️ 難易度を選択する（初級・中級・上級）
+2. 📋 シナリオを選択する（解約引き止め・請求トラブルなど）
+3. 💬 顧客役AIとチャットで模擬対応を行う
+4. ✅ 「対応終了」と入力するとフィードバックが表示される
+
+
+▼ 起動時の画面
+
+<img width="1919" height="864" alt="スクリーンショット 2026-04-19 182437" src="https://github.com/user-attachments/assets/9491189e-272e-44b0-807d-7571120d69e6" />
+
+▼ シミュレーション実行中の画面
+
+<img width="1900" height="647" alt="スクリーンショット 2026-04-15 153909" src="https://github.com/user-attachments/assets/a8f7b12c-f4ff-4e7d-a493-08eae4c75dbf" />
+
+▼ フィードバック表示画面
+
+<img width="1899" height="708" alt="スクリーンショット 2026-04-15 154007" src="https://github.com/user-attachments/assets/32844a13-ecc9-432d-81fc-6a7ac5815403" />
+
+## 🖥️ 使用環境
+
+| 項目 | 内容 |
+|---|---|
+| OS | Windows 11（Windows環境で開発・動作確認） |
+| Python | 3.11 |
+| フレームワーク | Chainlit |
+| LLM | OpenAI API（LangChain経由） |
+| ベクトルDB | FAISS |
+| コンテナ | Docker |
+| 主なライブラリ | LangChain, langchain-openai, langchain-community, PyMuPDF, FAISS |
+| デプロイ | 未定 |
 
 ## 🔮 今後の拡張予定
 
