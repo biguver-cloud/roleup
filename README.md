@@ -42,6 +42,7 @@ roleup/
 ├── .chainlit/         # Chainlit設定ファイル
 ├── chainlit.md        # Chainlitウェルカムメッセージ
 ├── Dockerfile         # Dockerイメージビルド定義
+├── GITHUB_RULES.md    # GitHub運用ルール
 ├── requirements.txt   # 依存パッケージ一覧
 └── README.md
 ```
