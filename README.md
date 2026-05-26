@@ -143,7 +143,7 @@ docker run --env-file .env -p 8000:8000 roleup
 | ベクトルDB | FAISS |
 | コンテナ | Docker |
 | 主なライブラリ | LangChain, langchain-openai, langchain-community, PyMuPDF, FAISS |
-| デプロイ | 未定 |
+| デプロイ | Google Cloud Run（利用想定） |
 
 ## 🔮 今後の拡張予定
 
