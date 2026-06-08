@@ -1,4 +1,7 @@
 # AIとの会話処理を管理するファイル
+from dotenv import load_dotenv
+load_dotenv()
+
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from prompts import build_roleplay_prompt, build_feedback_prompt
@@ -43,7 +46,12 @@ def get_roleplay_response(
     # AIに投げて返答をもらう
     response = llm.invoke(messages)
 
-    return response.content
+    content = response.content
+    for prefix in ["顧客：", "顧客:", "オペレーター：", "オペレーター:"]:
+        if content.startswith(prefix):
+            content = content[len(prefix):].lstrip()
+            break
+    return content
 
 
 # フィードバックを生成する関数

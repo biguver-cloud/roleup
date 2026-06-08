@@ -5,8 +5,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 
-# PDFが保存されているフォルダのパス
-PDF_DIR = "date/pdfs"
+# PDFが保存されているフォルダのパス（このファイルからの絶対パス）
+PDF_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "date", "pdfs")
 
 # ベクトルDBを構築する関数
 def build_vectorstore():
