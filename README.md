@@ -60,6 +60,9 @@ roleup/
 | FAISS | ベクトル検索（RAG） |
 | PyMuPDF | PDFナレッジの読み込み |
 | Docker | アプリケーションのコンテナ化・環境統一 |
+| Google Cloud Run | サーバーレスコンテナデプロイ |
+| Google Artifact Registry / GCR | コンテナイメージ管理 |
+| Google Secret Manager | APIキーの安全な管理 |
 
 ## 🏗️ アーキテクチャ図
 
@@ -78,7 +81,7 @@ flowchart TD
         FAISS["🗄️ FAISSベクトルDB"]
     end
 
-    User -->|メッセージ送信\nlocalhost:8000| UI
+    User -->|メッセージ送信\nCloud Run URL| UI
     UI -->|応答生成リクエスト| Agent
     UI -->|フィードバックリクエスト| Agent
     Agent -->|プロンプト構築| Prompts
@@ -100,7 +103,7 @@ python -m venv venv
 venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 cp .env.example .env         # .env を開いて OPENAI_API_KEY を入力
-chainlit run app/main.py     # http://localhost:8000
+chainlit run app/main.py     # http://localhost:8080
 ```
 
 > `date/pdfs/` にRAG用のPDFを配置してから起動してください。
@@ -109,8 +112,28 @@ chainlit run app/main.py     # http://localhost:8000
 
 ```bash
 docker build -t roleup .
-docker run --env-file .env -p 8000:8000 roleup
+docker run --env-file .env -p 8080:8080 roleup
 ```
+
+**Google Cloud Run にデプロイする場合**
+
+```bash
+# Cloud Build でイメージをビルド・プッシュ
+gcloud builds submit . --config cloudbuild.yaml --project YOUR_PROJECT_ID
+
+# Cloud Run にデプロイ
+gcloud run deploy roleup \
+  --image asia.gcr.io/YOUR_PROJECT_ID/roleup:latest \
+  --region asia-northeast1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --set-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest" \
+  --memory 1Gi \
+  --min-instances 1 \
+  --timeout 3600
+```
+
+> Secret Manager に `OPENAI_API_KEY` を事前に登録してください。
 
 ## 🚀 使い方
 
@@ -132,6 +155,11 @@ docker run --env-file .env -p 8000:8000 roleup
 
 <img width="1899" height="708" alt="スクリーンショット 2026-04-15 154007" src="https://github.com/user-attachments/assets/32844a13-ecc9-432d-81fc-6a7ac5815403" />
 
+## 🌐 デプロイ済みURL
+
+**本番環境（Google Cloud Run）:**
+https://roleup-498951365205.asia-northeast1.run.app
+
 ## 🖥️ 使用環境
 
 | 項目 | 内容 |
@@ -143,7 +171,7 @@ docker run --env-file .env -p 8000:8000 roleup
 | ベクトルDB | FAISS |
 | コンテナ | Docker |
 | 主なライブラリ | LangChain, langchain-openai, langchain-community, PyMuPDF, FAISS |
-| デプロイ | Google Cloud Run（利用想定） |
+| デプロイ | Google Cloud Run（asia-northeast1） |
 
 ## 🔮 今後の拡張予定
 
