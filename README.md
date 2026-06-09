@@ -12,7 +12,12 @@
 - **RAG（検索拡張生成）** を採用し、社内マニュアルなどのPDFナレッジを参照しながら応答を生成
 - トレーナー不在でも、いつでも・何度でも練習できる **自己学習型**の設計
 
-## 🎓 目的
+## � デプロイ済みURL
+
+**本番環境（Google Cloud Run）:**
+https://roleup-498951365205.asia-northeast1.run.app
+
+## �🎓 目的
 
 - **新人オペレーターの研修** — 実際の顧客対応を想定したロールプレイを通じて、現場に出る前にスキルを身につけられる
 - **練習機会不足の解消** — トレーナーや相手役がいなくても、いつでも・何度でも反復練習できる環境を提供する
@@ -154,11 +159,6 @@ gcloud run deploy roleup \
 ▼ フィードバック表示画面
 
 <img width="1899" height="708" alt="スクリーンショット 2026-04-15 154007" src="https://github.com/user-attachments/assets/32844a13-ecc9-432d-81fc-6a7ac5815403" />
-
-## 🌐 デプロイ済みURL
-
-**本番環境（Google Cloud Run）:**
-https://roleup-498951365205.asia-northeast1.run.app
 
 ## 🖥️ 使用環境
 
