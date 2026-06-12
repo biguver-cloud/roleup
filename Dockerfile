@@ -12,7 +12,4 @@ COPY chainlit.md .
 
 EXPOSE 8080
 
-# app/ ディレクトリを作業ディレクトリにすることで
-# api_routes.py / schemas.py 等の相互インポートが解決される
-WORKDIR /app/app
-CMD uvicorn api:app --host 0.0.0.0 --port ${PORT:-8080}
+CMD chainlit run app/main.py --host 0.0.0.0 --port ${PORT:-8080}

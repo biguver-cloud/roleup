@@ -60,8 +60,8 @@ roleup/
 | 技術 | 用途 |
 |---|---|
 | Python | バックエンド全体 |
-| FastAPI | REST API 司令塔（本番のエントリーポイント） |
-| Chainlit | ローカル開発用チャットUI（動作確認専用） |
+| FastAPI | REST API（ローカル開発・APIテスト用） |
+| Chainlit | チャットUI（本番・ローカル両対応） |
 | LangChain | 会話管理・フィードバック生成 |
 | langchain-openai | OpenAI APIとの連携 |
 | langchain-community | FAISSベクトルストア連携 |
@@ -77,14 +77,14 @@ roleup/
 
 ```mermaid
 flowchart TD
-    Frontend["🖥️ フロントエンド\n（React等）"]
-    DevUser["👤 開発者\n（ローカル動作確認）"]
+    User["👤 ユーザー"]
+    Developer["👤 開発者\n（ローカル開発）"]
     OpenAI["☁️ OpenAI API\nGPT-4o-mini"]
-    Chainlit["🖥️ Chainlit UI\nmain.py\n※ローカル開発専用"]
+    FastAPI["⚡ FastAPI REST API\napi.py / api_routes.py / schemas.py\n（ローカル・APIテスト用）"]
 
     subgraph CloudRun["☁️ Google Cloud Run（本番環境）"]
         subgraph Docker["🐳 Docker コンテナ"]
-            API["⚡ FastAPI 司令塔\napi.py / api_routes.py / schemas.py"]
+            Chainlit["🖥️ Chainlit UI\nmain.py"]
             Agent["🤖 AIエージェント\nagent.py"]
             Prompts["📝 プロンプト管理\nprompts.py"]
             RAG["🔍 RAG検索\nrag.py"]
@@ -93,18 +93,16 @@ flowchart TD
         end
     end
 
-    Frontend -->|"HTTP リクエスト\n/api/v1/..."| API
-    DevUser -->|"chainlit run app/main.py"| Chainlit
+    User -->|チャット操作| Chainlit
+    Developer -->|"uvicorn api:app --reload"| FastAPI
     Chainlit -->|直接呼び出し| Agent
-    API -->|処理委譲| Agent
+    FastAPI -->|処理委譲| Agent
     Agent -->|プロンプト構築| Prompts
     Agent -->|ナレッジ検索| RAG
     RAG -->|PDF読み込み| PDF
     RAG -->|ベクトル検索| FAISS
     Agent -->|API呼び出し| OpenAI
     OpenAI -->|応答・フィードバック| Agent
-    Agent -->|JSONレスポンス| API
-    API -->|JSONレスポンス| Frontend
 ```
 
 ## ⚙️ セットアップ手順
@@ -120,7 +118,13 @@ cp .env.example .env         # .env を開いて OPENAI_API_KEY を入力
 
 > `date/pdfs/` にRAG用のPDFを配置してから起動してください。
 
-**FastAPI で起動する場合（本番と同じ構成）**
+**Chainlit で起動する場合（本番と同じ構成）**
+
+```bash
+chainlit run app/main.py     # http://localhost:8000
+```
+
+**FastAPI で起動する場合（REST APIのテスト・確認用）**
 
 ```bash
 cd app
@@ -131,12 +135,6 @@ uvicorn api:app --reload     # http://localhost:8000
 |---|---|---|
 | Swagger UI | `http://localhost:8000/docs` | REST APIの動作確認・テスト画面 |
 | OpenAPI JSON | `http://localhost:8000/openapi.json` | API仕様書（JSON） |
-
-**Chainlit で起動する場合（ローカル動作確認用）**
-
-```bash
-chainlit run app/main.py     # http://localhost:8000
-```
 
 **Docker を使う場合**
 
@@ -167,7 +165,14 @@ gcloud run deploy roleup \
 
 ## 🚀 使い方
 
-### REST API で使う場合（本番・推奨）
+### Chainlit UI で使う場合（本番・推奨）
+
+1. 🎚️ 難易度を選択する（初級・中級・上級）
+2. 📋 シナリオを選択する（解約引き止め・請求トラブルなど）
+3. 💬 顧客役AIとチャットで模擬対応を行う
+4. ✅ 「対応終了」と入力するとフィードバックが表示される
+
+### REST API で使う場合（APIテスト・動作確認用）
 
 `http://localhost:8000/docs` をブラウザで開くとSwagger UIが表示され、画面上でAPIを試せます。
 
@@ -181,13 +186,6 @@ gcloud run deploy roleup \
 | POST | `/api/v1/sessions/{id}/start` | 難易度・シナリオを選択して顧客役AIの第一声を取得 |
 | POST | `/api/v1/sessions/{id}/messages` | メッセージを送信して顧客役AIの返答を取得 |
 | POST | `/api/v1/sessions/{id}/feedback` | 会話全体のフィードバックを取得 |
-
-### Chainlit UI で使う場合（ローカル開発・動作確認専用）
-
-1. 🎚️ 難易度を選択する（初級・中級・上級）
-2. 📋 シナリオを選択する（解約引き止め・請求トラブルなど）
-3. 💬 顧客役AIとチャットで模擬対応を行う
-4. ✅ 「対応終了」と入力するとフィードバックが表示される
 
 
 ▼ 起動時の画面
