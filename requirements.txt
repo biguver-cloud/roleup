@@ -1,5 +1,6 @@
 chainlit==2.11.0
 fastapi
+httpx
 langchain==1.2.15
 langchain-openai==1.1.12
 langchain-community==0.4.1

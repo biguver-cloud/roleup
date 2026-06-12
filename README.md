@@ -38,18 +38,20 @@ https://roleup-498951365205.asia-northeast1.run.app
 ```
 roleup/
 ├── app/
-│   ├── api.py         # FastAPIエントリーポイント（本番起動）・CORS設定
+│   ├── main.py        # Chainlit UI（フロントエンド）
+│   ├── api.py         # FastAPIエントリーポイント・CORS設定
 │   ├── api_routes.py  # FastAPI REST APIエンドポイント定義
 │   ├── schemas.py     # APIリクエスト・レスポンスのPydantic型定義
 │   ├── agent.py       # AI応答・フィードバック生成ロジック
 │   ├── prompts.py     # プロンプト管理（ロールプレイ・フィードバック）
-│   ├── rag.py         # PDFナレッジ読み込み・ベクトル検索
-│   └── main.py        # Chainlit UI（ローカル開発・動作確認専用）
+│   └── rag.py         # PDFナレッジ読み込み・ベクトル検索
 ├── date/
 │   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
 ├── .chainlit/         # Chainlit設定ファイル
 ├── chainlit.md        # Chainlitウェルカムメッセージ
-├── Dockerfile         # Dockerイメージビルド定義
+├── Dockerfile         # ChainlitコンテナのDockerイメージ
+├── Dockerfile.api     # FastAPIコンテナのDockerイメージ
+├── docker-compose.yml # 2コンテナ構成の起動定義
 ├── GITHUB_RULES.md    # GitHub運用ルール
 ├── requirements.txt   # 依存パッケージ一覧
 └── README.md
@@ -60,8 +62,10 @@ roleup/
 | 技術 | 用途 |
 |---|---|
 | Python | バックエンド全体 |
-| FastAPI | REST API（ローカル開発・APIテスト用） |
-| Chainlit | チャットUI（本番・ローカル両対応） |
+| FastAPI | REST API仲介層（Chainlitとバックエンドをつなぐ） |
+| Chainlit | チャットUI（フロントエンド） |
+| httpx | ChainlitからFastAPIへの非同期HTTPリクエスト |
+| Docker Compose | 2コンテナ構成のローカル起動 |
 | LangChain | 会話管理・フィードバック生成 |
 | langchain-openai | OpenAI APIとの連携 |
 | langchain-community | FAISSベクトルストア連携 |
@@ -78,13 +82,14 @@ roleup/
 ```mermaid
 flowchart TD
     User["👤 ユーザー"]
-    Developer["👤 開発者\n（ローカル開発）"]
     OpenAI["☁️ OpenAI API\nGPT-4o-mini"]
-    FastAPI["⚡ FastAPI REST API\napi.py / api_routes.py / schemas.py\n（ローカル・APIテスト用）"]
 
     subgraph CloudRun["☁️ Google Cloud Run（本番環境）"]
-        subgraph Docker["🐳 Docker コンテナ"]
+        subgraph ChainlitSvc["🐳 Chainlitサービス\n（Dockerfile）"]
             Chainlit["🖥️ Chainlit UI\nmain.py"]
+        end
+        subgraph FastAPISvc["🐳 FastAPIサービス\n（Dockerfile.api）"]
+            API["⚡ FastAPI 仲介層\napi.py / api_routes.py / schemas.py"]
             Agent["🤖 AIエージェント\nagent.py"]
             Prompts["📝 プロンプト管理\nprompts.py"]
             RAG["🔍 RAG検索\nrag.py"]
@@ -94,15 +99,17 @@ flowchart TD
     end
 
     User -->|チャット操作| Chainlit
-    Developer -->|"uvicorn api:app --reload"| FastAPI
-    Chainlit -->|直接呼び出し| Agent
-    FastAPI -->|処理委譲| Agent
+    Chainlit -->|"HTTP POST /api/v1/..."| API
+    API -->|処理委譲| Agent
     Agent -->|プロンプト構築| Prompts
     Agent -->|ナレッジ検索| RAG
     RAG -->|PDF読み込み| PDF
     RAG -->|ベクトル検索| FAISS
     Agent -->|API呼び出し| OpenAI
     OpenAI -->|応答・フィードバック| Agent
+    Agent -->|JSONレスポンス| API
+    API -->|JSONレスポンス| Chainlit
+    Chainlit -->|チャット表示| User
 ```
 
 ## ⚙️ セットアップ手順
@@ -118,29 +125,26 @@ cp .env.example .env         # .env を開いて OPENAI_API_KEY を入力
 
 > `date/pdfs/` にRAG用のPDFを配置してから起動してください。
 
-**Chainlit で起動する場合（本番と同じ構成）**
+**Docker Compose で起動する場合（推奨・本番と同じ2コンテナ構成）**
 
 ```bash
-chainlit run app/main.py     # http://localhost:8000
+docker compose up --build
 ```
 
-**FastAPI で起動する場合（REST APIのテスト・確認用）**
+| サービス | URL | 説明 |
+|---|---|---|
+| Chainlit UI | `http://localhost:8080` | ロールプレイのチャット画面 |
+| FastAPI Swagger | `http://localhost:8000/docs` | REST APIの動作確認画面 |
+
+**個別に起動する場合**
 
 ```bash
+# FastAPIを起動（先に起動する）
 cd app
 uvicorn api:app --reload     # http://localhost:8000
-```
 
-| インターフェース | URL | 説明 |
-|---|---|---|
-| Swagger UI | `http://localhost:8000/docs` | REST APIの動作確認・テスト画面 |
-| OpenAPI JSON | `http://localhost:8000/openapi.json` | API仕様書（JSON） |
-
-**Docker を使う場合**
-
-```bash
-docker build -t roleup .
-docker run --env-file .env -p 8080:8080 roleup
+# Chainlitを起動（別ターミナルで）
+chainlit run app/main.py     # http://localhost:8080
 ```
 
 **Google Cloud Run にデプロイする場合**
