@@ -38,7 +38,9 @@ https://roleup-498951365205.asia-northeast1.run.app
 ```
 roleup/
 ├── app/
-│   ├── main.py        # Chainlitエントリーポイント・UI制御
+│   ├── main.py        # Chainlitエントリーポイント・UI制御 / FastAPIルーター登録
+│   ├── api_routes.py  # FastAPI REST APIエンドポイント定義
+│   ├── schemas.py     # APIリクエスト・レスポンスのPydantic型定義
 │   ├── agent.py       # AI応答・フィードバック生成ロジック
 │   ├── prompts.py     # プロンプト管理（ロールプレイ・フィードバック）
 │   └── rag.py         # PDFナレッジ読み込み・ベクトル検索
@@ -57,6 +59,7 @@ roleup/
 | 技術 | 用途 |
 |---|---|
 | Python | バックエンド全体 |
+| FastAPI | REST API エンドポイント提供 |
 | Chainlit | チャットUI・会話フロー制御 |
 | LangChain | 会話管理・フィードバック生成 |
 | langchain-openai | OpenAI APIとの連携 |
@@ -72,13 +75,14 @@ roleup/
 ## 🏗️ アーキテクチャ図
 
 ```mermaid
-
 flowchart TD
     User["👤 ユーザー（オペレーター）"]
+    ExtApp["💻 外部アプリ・プログラム"]
     OpenAI["☁️ OpenAI API\nGPT-4o-mini"]
 
-    subgraph Docker["🐳 Docker コンテナ"]
+    subgraph Docker["🐳 Docker コンテナ（Cloud Run）"]
         UI["🖥️ Chainlit UI\nmain.py"]
+        API["⚡ FastAPI REST API\napi_routes.py / schemas.py"]
         Agent["🤖 AIエージェント\nagent.py"]
         Prompts["📝 プロンプト管理\nprompts.py"]
         RAG["🔍 RAG検索\nrag.py"]
@@ -86,9 +90,10 @@ flowchart TD
         FAISS["🗄️ FAISSベクトルDB"]
     end
 
-    User -->|メッセージ送信\nCloud Run URL| UI
-    UI -->|応答生成リクエスト| Agent
-    UI -->|フィードバックリクエスト| Agent
+    User -->|"チャット操作\nCloud Run URL"| UI
+    ExtApp -->|"HTTP リクエスト\n/api/v1/..."| API
+    UI -->|応答生成・フィードバックリクエスト| Agent
+    API -->|応答生成・フィードバックリクエスト| Agent
     Agent -->|プロンプト構築| Prompts
     Agent -->|ナレッジ検索| RAG
     RAG -->|PDF読み込み| PDF
@@ -96,7 +101,9 @@ flowchart TD
     Agent -->|API呼び出し| OpenAI
     OpenAI -->|応答・フィードバック| Agent
     Agent -->|結果返却| UI
+    Agent -->|JSONレスポンス| API
     UI -->|表示| User
+    API -->|JSONレスポンス| ExtApp
 ```
 
 ## ⚙️ セットアップ手順
@@ -108,10 +115,17 @@ python -m venv venv
 venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 cp .env.example .env         # .env を開いて OPENAI_API_KEY を入力
-chainlit run app/main.py     # http://localhost:8080
+chainlit run app/main.py     # http://localhost:8000
 ```
 
 > `date/pdfs/` にRAG用のPDFを配置してから起動してください。
+
+起動後は以下の2つのインターフェースが同一ポートで利用できます。
+
+| インターフェース | URL | 説明 |
+|---|---|---|
+| チャットUI | `http://localhost:8000` | Chainlitのチャット画面 |
+| Swagger UI | `http://localhost:8000/docs` | REST APIの動作確認・テスト画面 |
 
 **Docker を使う場合**
 
@@ -142,10 +156,27 @@ gcloud run deploy roleup \
 
 ## 🚀 使い方
 
+### チャットUIで使う場合
+
 1. 🎚️ 難易度を選択する（初級・中級・上級）
 2. 📋 シナリオを選択する（解約引き止め・請求トラブルなど）
 3. 💬 顧客役AIとチャットで模擬対応を行う
 4. ✅ 「対応終了」と入力するとフィードバックが表示される
+
+### REST APIで使う場合
+
+`http://localhost:8000/docs` をブラウザで開くとSwagger UIが表示され、画面上でAPIを試せます。
+
+**APIエンドポイント一覧**
+
+| メソッド | パス | 説明 |
+|---|---|---|
+| GET | `/api/v1/health` | サーバーの死活確認 |
+| GET | `/api/v1/options` | 難易度・シナリオの選択肢を取得 |
+| POST | `/api/v1/sessions` | セッション作成（会話の開始準備） |
+| POST | `/api/v1/sessions/{id}/start` | 難易度・シナリオを選択して顧客役AIの第一声を取得 |
+| POST | `/api/v1/sessions/{id}/messages` | メッセージを送信して顧客役AIの返答を取得 |
+| POST | `/api/v1/sessions/{id}/feedback` | 会話全体のフィードバックを取得 |
 
 
 ▼ 起動時の画面
@@ -166,7 +197,7 @@ gcloud run deploy roleup \
 |---|---|
 | OS | Windows 11（Windows環境で開発・動作確認） |
 | Python | 3.11 |
-| フレームワーク | Chainlit |
+| フレームワーク | Chainlit / FastAPI |
 | LLM | OpenAI API（LangChain経由） |
 | ベクトルDB | FAISS |
 | コンテナ | Docker |

@@ -111,3 +111,9 @@ async def on_message(message: cl.Message):
     cl.user_session.set("conversation_history", conversation_history)
 
     await cl.Message(content=f"顧客：{response}").send()
+
+
+# Chainlit の内部 FastAPI app に REST API ルーターを追加
+from chainlit.server import app as _chainlit_app
+import api_routes as _api_routes
+_chainlit_app.include_router(_api_routes.router)
