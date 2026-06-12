@@ -3,9 +3,9 @@ steps:
     args:
       - 'build'
       - '-f'
-      - 'Dockerfile'
+      - 'Dockerfile.api'
       - '-t'
-      - 'asia.gcr.io/$PROJECT_ID/roleup'
+      - 'asia.gcr.io/$PROJECT_ID/roleup-api'
       - '.'
 images:
-  - 'asia.gcr.io/$PROJECT_ID/roleup'
+  - 'asia.gcr.io/$PROJECT_ID/roleup-api'
