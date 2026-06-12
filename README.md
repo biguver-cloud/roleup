@@ -38,12 +38,13 @@ https://roleup-498951365205.asia-northeast1.run.app
 ```
 roleup/
 ├── app/
-│   ├── main.py        # Chainlitエントリーポイント・UI制御 / FastAPIルーター登録
+│   ├── api.py         # FastAPIエントリーポイント（本番起動）・CORS設定
 │   ├── api_routes.py  # FastAPI REST APIエンドポイント定義
 │   ├── schemas.py     # APIリクエスト・レスポンスのPydantic型定義
 │   ├── agent.py       # AI応答・フィードバック生成ロジック
 │   ├── prompts.py     # プロンプト管理（ロールプレイ・フィードバック）
-│   └── rag.py         # PDFナレッジ読み込み・ベクトル検索
+│   ├── rag.py         # PDFナレッジ読み込み・ベクトル検索
+│   └── main.py        # Chainlit UI（ローカル開発・動作確認専用）
 ├── date/
 │   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
 ├── .chainlit/         # Chainlit設定ファイル
@@ -59,8 +60,8 @@ roleup/
 | 技術 | 用途 |
 |---|---|
 | Python | バックエンド全体 |
-| FastAPI | REST API エンドポイント提供 |
-| Chainlit | チャットUI・会話フロー制御 |
+| FastAPI | REST API 司令塔（本番のエントリーポイント） |
+| Chainlit | ローカル開発用チャットUI（動作確認専用） |
 | LangChain | 会話管理・フィードバック生成 |
 | langchain-openai | OpenAI APIとの連携 |
 | langchain-community | FAISSベクトルストア連携 |
@@ -76,34 +77,34 @@ roleup/
 
 ```mermaid
 flowchart TD
-    User["👤 ユーザー（オペレーター）"]
-    ExtApp["💻 外部アプリ・プログラム"]
+    Frontend["🖥️ フロントエンド\n（React等）"]
+    DevUser["👤 開発者\n（ローカル動作確認）"]
     OpenAI["☁️ OpenAI API\nGPT-4o-mini"]
+    Chainlit["🖥️ Chainlit UI\nmain.py\n※ローカル開発専用"]
 
-    subgraph Docker["🐳 Docker コンテナ（Cloud Run）"]
-        UI["🖥️ Chainlit UI\nmain.py"]
-        API["⚡ FastAPI REST API\napi_routes.py / schemas.py"]
-        Agent["🤖 AIエージェント\nagent.py"]
-        Prompts["📝 プロンプト管理\nprompts.py"]
-        RAG["🔍 RAG検索\nrag.py"]
-        PDF["📄 PDFナレッジ\ndate/pdfs/"]
-        FAISS["🗄️ FAISSベクトルDB"]
+    subgraph CloudRun["☁️ Google Cloud Run（本番環境）"]
+        subgraph Docker["🐳 Docker コンテナ"]
+            API["⚡ FastAPI 司令塔\napi.py / api_routes.py / schemas.py"]
+            Agent["🤖 AIエージェント\nagent.py"]
+            Prompts["📝 プロンプト管理\nprompts.py"]
+            RAG["🔍 RAG検索\nrag.py"]
+            PDF["📄 PDFナレッジ\ndate/pdfs/"]
+            FAISS["🗄️ FAISSベクトルDB"]
+        end
     end
 
-    User -->|"チャット操作\nCloud Run URL"| UI
-    ExtApp -->|"HTTP リクエスト\n/api/v1/..."| API
-    UI -->|応答生成・フィードバックリクエスト| Agent
-    API -->|応答生成・フィードバックリクエスト| Agent
+    Frontend -->|"HTTP リクエスト\n/api/v1/..."| API
+    DevUser -->|"chainlit run app/main.py"| Chainlit
+    Chainlit -->|直接呼び出し| Agent
+    API -->|処理委譲| Agent
     Agent -->|プロンプト構築| Prompts
     Agent -->|ナレッジ検索| RAG
     RAG -->|PDF読み込み| PDF
     RAG -->|ベクトル検索| FAISS
     Agent -->|API呼び出し| OpenAI
     OpenAI -->|応答・フィードバック| Agent
-    Agent -->|結果返却| UI
     Agent -->|JSONレスポンス| API
-    UI -->|表示| User
-    API -->|JSONレスポンス| ExtApp
+    API -->|JSONレスポンス| Frontend
 ```
 
 ## ⚙️ セットアップ手順
@@ -115,17 +116,27 @@ python -m venv venv
 venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 cp .env.example .env         # .env を開いて OPENAI_API_KEY を入力
-chainlit run app/main.py     # http://localhost:8000
 ```
 
 > `date/pdfs/` にRAG用のPDFを配置してから起動してください。
 
-起動後は以下の2つのインターフェースが同一ポートで利用できます。
+**FastAPI で起動する場合（本番と同じ構成）**
+
+```bash
+cd app
+uvicorn api:app --reload     # http://localhost:8000
+```
 
 | インターフェース | URL | 説明 |
 |---|---|---|
-| チャットUI | `http://localhost:8000` | Chainlitのチャット画面 |
 | Swagger UI | `http://localhost:8000/docs` | REST APIの動作確認・テスト画面 |
+| OpenAPI JSON | `http://localhost:8000/openapi.json` | API仕様書（JSON） |
+
+**Chainlit で起動する場合（ローカル動作確認用）**
+
+```bash
+chainlit run app/main.py     # http://localhost:8000
+```
 
 **Docker を使う場合**
 
@@ -156,14 +167,7 @@ gcloud run deploy roleup \
 
 ## 🚀 使い方
 
-### チャットUIで使う場合
-
-1. 🎚️ 難易度を選択する（初級・中級・上級）
-2. 📋 シナリオを選択する（解約引き止め・請求トラブルなど）
-3. 💬 顧客役AIとチャットで模擬対応を行う
-4. ✅ 「対応終了」と入力するとフィードバックが表示される
-
-### REST APIで使う場合
+### REST API で使う場合（本番・推奨）
 
 `http://localhost:8000/docs` をブラウザで開くとSwagger UIが表示され、画面上でAPIを試せます。
 
@@ -177,6 +181,13 @@ gcloud run deploy roleup \
 | POST | `/api/v1/sessions/{id}/start` | 難易度・シナリオを選択して顧客役AIの第一声を取得 |
 | POST | `/api/v1/sessions/{id}/messages` | メッセージを送信して顧客役AIの返答を取得 |
 | POST | `/api/v1/sessions/{id}/feedback` | 会話全体のフィードバックを取得 |
+
+### Chainlit UI で使う場合（ローカル開発・動作確認専用）
+
+1. 🎚️ 難易度を選択する（初級・中級・上級）
+2. 📋 シナリオを選択する（解約引き止め・請求トラブルなど）
+3. 💬 顧客役AIとチャットで模擬対応を行う
+4. ✅ 「対応終了」と入力するとフィードバックが表示される
 
 
 ▼ 起動時の画面
