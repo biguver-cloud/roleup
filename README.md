@@ -49,11 +49,17 @@ roleup/
 │   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
 ├── .chainlit/         # Chainlit設定ファイル
 ├── chainlit.md        # Chainlitウェルカムメッセージ
-├── Dockerfile         # ChainlitコンテナのDockerイメージ
-├── Dockerfile.api     # FastAPIコンテナのDockerイメージ
-├── docker-compose.yml # 2コンテナ構成の起動定義
-├── GITHUB_RULES.md    # GitHub運用ルール
-├── requirements.txt   # 依存パッケージ一覧
+├── tests/
+│   ├── conftest.py        # テスト設定・フィクスチャ
+│   └── test_api_routes.py # APIエンドポイントのテスト
+├── cloudbuild.yaml        # Cloud Build設定（Chainlit：ビルド→デプロイ）
+├── cloudbuild.api.yaml    # Cloud Build設定（FastAPI：テスト→ビルド→デプロイ）
+├── Dockerfile             # ChainlitコンテナのDockerイメージ
+├── Dockerfile.api         # FastAPIコンテナのDockerイメージ
+├── docker-compose.yml     # 2コンテナ構成の起動定義
+├── GITHUB_RULES.md        # GitHub運用ルール
+├── requirements.txt       # 依存パッケージ一覧
+├── requirements-dev.txt   # 開発・テスト用パッケージ一覧
 └── README.md
 ```
 
@@ -74,8 +80,10 @@ roleup/
 | PyMuPDF | PDFナレッジの読み込み |
 | Docker | アプリケーションのコンテナ化・環境統一 |
 | Google Cloud Run | サーバーレスコンテナデプロイ |
+| Google Cloud Build | CI/CD（テスト・ビルド・デプロイの自動化） |
 | Google Artifact Registry / GCR | コンテナイメージ管理 |
 | Google Secret Manager | APIキーの安全な管理 |
+| pytest | APIエンドポイントの自動テスト |
 
 ## 🏗️ アーキテクチャ図
 
@@ -147,23 +155,16 @@ uvicorn api:app --reload     # http://localhost:8000
 chainlit run app/main.py     # http://localhost:8080
 ```
 
-**Google Cloud Run にデプロイする場合**
+**Google Cloud Run へのデプロイ（CI/CD自動化済み）**
 
-```bash
-# Cloud Build でイメージをビルド・プッシュ
-gcloud builds submit . --config cloudbuild.yaml --project YOUR_PROJECT_ID
+`main` ブランチへの push で以下が自動実行されます。
 
-# Cloud Run にデプロイ
-gcloud run deploy roleup \
-  --image asia.gcr.io/YOUR_PROJECT_ID/roleup:latest \
-  --region asia-northeast1 \
-  --platform managed \
-  --allow-unauthenticated \
-  --set-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest" \
-  --memory 1Gi \
-  --min-instances 1 \
-  --timeout 3600
-```
+| トリガー | 自動実行内容 | 設定ファイル |
+|---|---|---|
+| `roleup-api-deploy` | pytest → ビルド → Cloud Runデプロイ（FastAPI） | `cloudbuild.api.yaml` |
+| `roleup-deploy` | ビルド → Cloud Runデプロイ（Chainlit） | `cloudbuild.yaml` |
+
+> テストが失敗した場合はビルド・デプロイがキャンセルされます。
 
 > Secret Manager に `OPENAI_API_KEY` を事前に登録してください。
 
