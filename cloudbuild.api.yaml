@@ -1,12 +1,10 @@
 steps:
   # --- テスト ---
   - name: 'python:3.11'
-    entrypoint: pip
-    args: ['install', '-r', 'requirements-dev.txt']
-
-  - name: 'python:3.11'
-    entrypoint: pytest
-    args: ['tests/', '-v']
+    entrypoint: bash
+    args:
+      - '-c'
+      - 'pip install -r requirements-dev.txt && pytest tests/ -v'
 
   # --- ビルド ---
   - name: 'gcr.io/cloud-builders/docker'
