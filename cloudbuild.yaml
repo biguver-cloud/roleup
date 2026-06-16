@@ -1,4 +1,5 @@
 steps:
+  # --- ビルド ---
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -7,5 +8,23 @@ steps:
       - '-t'
       - 'asia.gcr.io/$PROJECT_ID/roleup'
       - '.'
+
+  # --- デプロイ ---
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'roleup'
+      - '--image'
+      - 'asia.gcr.io/$PROJECT_ID/roleup'
+      - '--region'
+      - 'asia-northeast1'
+      - '--platform'
+      - 'managed'
+
 images:
   - 'asia.gcr.io/$PROJECT_ID/roleup'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
