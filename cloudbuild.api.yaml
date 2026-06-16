@@ -1,4 +1,14 @@
 steps:
+  # --- テスト ---
+  - name: 'python:3.11'
+    entrypoint: pip
+    args: ['install', '-r', 'requirements-dev.txt']
+
+  - name: 'python:3.11'
+    entrypoint: pytest
+    args: ['tests/', '-v']
+
+  # --- ビルド ---
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -7,5 +17,23 @@ steps:
       - '-t'
       - 'asia.gcr.io/$PROJECT_ID/roleup-api'
       - '.'
+
+  # --- デプロイ ---
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'roleup-api'
+      - '--image'
+      - 'asia.gcr.io/$PROJECT_ID/roleup-api'
+      - '--region'
+      - 'asia-northeast1'
+      - '--platform'
+      - 'managed'
+
 images:
   - 'asia.gcr.io/$PROJECT_ID/roleup-api'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
