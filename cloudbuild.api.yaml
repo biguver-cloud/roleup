@@ -4,7 +4,7 @@ steps:
     entrypoint: bash
     args:
       - '-c'
-      - 'pip install -r requirements-dev.txt && pytest tests/ -v'
+      - 'pip install -r requirements.txt -r requirements-dev.txt && pytest tests/ -v'
 
   # --- ビルド ---
   - name: 'gcr.io/cloud-builders/docker'
