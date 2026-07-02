@@ -53,7 +53,6 @@ roleup/
 ├── Dockerfile             # ChainlitコンテナのDockerイメージ
 ├── Dockerfile.api         # FastAPIコンテナのDockerイメージ
 ├── docker-compose.yml     # 2コンテナ構成の起動定義
-├── GITHUB_RULES.md        # GitHub運用ルール
 ├── requirements.txt       # 依存パッケージ一覧
 ├── requirements-dev.txt   # 開発・テスト用パッケージ一覧
 └── README.md
@@ -157,8 +156,6 @@ chainlit run app/main.py     # http://localhost:8080
 | `roleup-deploy` | ビルド → Cloud Runデプロイ（Chainlit） | `cloudbuild.yaml` |
 
 > テストが失敗した場合はビルド・デプロイがキャンセルされます。
-
-> Secret Manager に `OPENAI_API_KEY` を事前に登録してください。
 
 ## 🚀 使い方
 
