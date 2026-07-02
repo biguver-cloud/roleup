@@ -29,10 +29,6 @@ https://roleup-498951365205.asia-northeast1.run.app
 - 📈 初級から上級まで段階的な難易度を設けることで新人から経験者まで幅広く対応できる設計にした
 - 🎭 シナリオは実務で頻出の場面（解約・請求・クレーム・新規契約）を厳選した
 
-## 📋 GitHub運用ルール
-
-チーム開発を想定した運用ルールを定めています。詳細は [GITHUB_RULES.md](GITHUB_RULES.md) をご参照ください。
-
 ## 📁 ディレクトリ構成
 
 ```
@@ -80,10 +76,6 @@ roleup/
 | PyMuPDF | PDFナレッジの読み込み |
 | Docker | アプリケーションのコンテナ化・環境統一 |
 | Google Cloud Run | サーバーレスコンテナデプロイ |
-| Google Cloud Build | CI/CD（テスト・ビルド・デプロイの自動化） |
-| Google Artifact Registry / GCR | コンテナイメージ管理 |
-| Google Secret Manager | APIキーの安全な管理 |
-| pytest | APIエンドポイントの自動テスト |
 
 ## 🏗️ アーキテクチャ図
 
