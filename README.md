@@ -194,19 +194,6 @@ chainlit run app/main.py     # http://localhost:8080
 
 <img width="1899" height="708" alt="スクリーンショット 2026-04-15 154007" src="https://github.com/user-attachments/assets/32844a13-ecc9-432d-81fc-6a7ac5815403" />
 
-## 🖥️ 使用環境
-
-| 項目 | 内容 |
-|---|---|
-| OS | Windows 11（Windows環境で開発・動作確認） |
-| Python | 3.11 |
-| フレームワーク | Chainlit / FastAPI |
-| LLM | OpenAI API（LangChain経由） |
-| ベクトルDB | FAISS |
-| コンテナ | Docker |
-| 主なライブラリ | LangChain, langchain-openai, langchain-community, PyMuPDF, FAISS |
-| デプロイ | Google Cloud Run（asia-northeast1） |
-
 ## 🔮 今後の拡張予定
 
 - 🏥 業種別シナリオの追加（医療・金融・ECなど）
