@@ -161,11 +161,6 @@ gcloud run deploy roleup \
 
 <img width="1899" height="708" alt="スクリーンショット 2026-04-15 154007" src="https://github.com/user-attachments/assets/32844a13-ecc9-432d-81fc-6a7ac5815403" />
 
-## 🌐 デプロイ済みURL
-
-**本番環境（Google Cloud Run）:**
-https://roleup-498951365205.asia-northeast1.run.app
-
 ## 🖥️ 使用環境
 
 | 項目 | 内容 |
