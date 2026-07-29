@@ -12,11 +12,6 @@
 - **RAG（検索拡張生成）** を採用し、社内マニュアルなどのPDFナレッジを参照しながら応答を生成
 - トレーナー不在でも、いつでも・何度でも練習できる **自己学習型**の設計
 
-## 🚀 デプロイ済みURL
-
-**本番環境（Google Cloud Run）:**
-https://roleup-498951365205.asia-northeast1.run.app
-
 ## 🎓 目的
 
 - **新人オペレーターの研修** — 実際の顧客対応を想定したロールプレイを通じて、現場に出る前にスキルを身につけられる
@@ -29,15 +24,16 @@ https://roleup-498951365205.asia-northeast1.run.app
 - 📈 初級から上級まで段階的な難易度を設けることで新人から経験者まで幅広く対応できる設計にした
 - 🎭 シナリオは実務で頻出の場面（解約・請求・クレーム・新規契約）を厳選した
 
+## 📋 GitHub運用ルール
+
+チーム開発を想定した運用ルールを定めています。詳細は [GITHUB_RULES.md](GITHUB_RULES.md) をご参照ください。
+
 ## 📁 ディレクトリ構成
 
 ```
 roleup/
 ├── app/
-│   ├── main.py        # Chainlit UI（フロントエンド）
-│   ├── api.py         # FastAPIエントリーポイント・CORS設定
-│   ├── api_routes.py  # FastAPI REST APIエンドポイント定義
-│   ├── schemas.py     # APIリクエスト・レスポンスのPydantic型定義
+│   ├── main.py        # Chainlitエントリーポイント・UI制御
 │   ├── agent.py       # AI応答・フィードバック生成ロジック
 │   ├── prompts.py     # プロンプト管理（ロールプレイ・フィードバック）
 │   └── rag.py         # PDFナレッジ読み込み・ベクトル検索
@@ -45,16 +41,10 @@ roleup/
 │   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
 ├── .chainlit/         # Chainlit設定ファイル
 ├── chainlit.md        # Chainlitウェルカムメッセージ
-├── tests/
-│   ├── conftest.py        # テスト設定・フィクスチャ
-│   └── test_api_routes.py # APIエンドポイントのテスト
-├── cloudbuild.yaml        # Cloud Build設定（Chainlit：ビルド→デプロイ）
-├── cloudbuild.api.yaml    # Cloud Build設定（FastAPI：テスト→ビルド→デプロイ）
-├── Dockerfile             # ChainlitコンテナのDockerイメージ
-├── Dockerfile.api         # FastAPIコンテナのDockerイメージ
-├── docker-compose.yml     # 2コンテナ構成の起動定義
-├── requirements.txt       # 依存パッケージ一覧
-├── requirements-dev.txt   # 開発・テスト用パッケージ一覧
+├── cloudbuild.yaml    # Cloud Build設定（GCRへのイメージビルド）
+├── Dockerfile         # Dockerイメージビルド定義
+├── GITHUB_RULES.md    # GitHub運用ルール
+├── requirements.txt   # 依存パッケージ一覧
 └── README.md
 ```
 
@@ -63,10 +53,7 @@ roleup/
 | 技術 | 用途 |
 |---|---|
 | Python | バックエンド全体 |
-| FastAPI | REST API仲介層（Chainlitとバックエンドをつなぐ） |
-| Chainlit | チャットUI（フロントエンド） |
-| httpx | ChainlitからFastAPIへの非同期HTTPリクエスト |
-| Docker Compose | 2コンテナ構成のローカル起動 |
+| Chainlit | チャットUI・会話フロー制御 |
 | LangChain | 会話管理・フィードバック生成 |
 | langchain-openai | OpenAI APIとの連携 |
 | langchain-community | FAISSベクトルストア連携 |
@@ -75,40 +62,37 @@ roleup/
 | PyMuPDF | PDFナレッジの読み込み |
 | Docker | アプリケーションのコンテナ化・環境統一 |
 | Google Cloud Run | サーバーレスコンテナデプロイ |
+| Google Artifact Registry / GCR | コンテナイメージ管理 |
+| Google Secret Manager | APIキーの安全な管理 |
 
 ## 🏗️ アーキテクチャ図
 
 ```mermaid
+
 flowchart TD
-    User["👤 ユーザー"]
+    User["👤 ユーザー（オペレーター）"]
     OpenAI["☁️ OpenAI API\nGPT-4o-mini"]
 
-    subgraph CloudRun["☁️ Google Cloud Run（本番環境）"]
-        subgraph ChainlitSvc["🐳 Chainlitサービス\n（Dockerfile）"]
-            Chainlit["🖥️ Chainlit UI\nmain.py"]
-        end
-        subgraph FastAPISvc["🐳 FastAPIサービス\n（Dockerfile.api）"]
-            API["⚡ FastAPI 仲介層\napi.py / api_routes.py / schemas.py"]
-            Agent["🤖 AIエージェント\nagent.py"]
-            Prompts["📝 プロンプト管理\nprompts.py"]
-            RAG["🔍 RAG検索\nrag.py"]
-            PDF["📄 PDFナレッジ\ndate/pdfs/"]
-            FAISS["🗄️ FAISSベクトルDB"]
-        end
+    subgraph Docker["🐳 Docker コンテナ"]
+        UI["🖥️ Chainlit UI\nmain.py"]
+        Agent["🤖 AIエージェント\nagent.py"]
+        Prompts["📝 プロンプト管理\nprompts.py"]
+        RAG["🔍 RAG検索\nrag.py"]
+        PDF["📄 PDFナレッジ\ndate/pdfs/"]
+        FAISS["🗄️ FAISSベクトルDB"]
     end
 
-    User -->|チャット操作| Chainlit
-    Chainlit -->|"HTTP POST /api/v1/..."| API
-    API -->|処理委譲| Agent
+    User -->|メッセージ送信\nCloud Run URL| UI
+    UI -->|応答生成リクエスト| Agent
+    UI -->|フィードバックリクエスト| Agent
     Agent -->|プロンプト構築| Prompts
     Agent -->|ナレッジ検索| RAG
     RAG -->|PDF読み込み| PDF
     RAG -->|ベクトル検索| FAISS
     Agent -->|API呼び出し| OpenAI
     OpenAI -->|応答・フィードバック| Agent
-    Agent -->|JSONレスポンス| API
-    API -->|JSONレスポンス| Chainlit
-    Chainlit -->|チャット表示| User
+    Agent -->|結果返却| UI
+    UI -->|表示| User
 ```
 
 ## ⚙️ セットアップ手順
@@ -120,66 +104,44 @@ python -m venv venv
 venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 cp .env.example .env         # .env を開いて OPENAI_API_KEY を入力
+chainlit run app/main.py     # http://localhost:8080
 ```
 
 > `date/pdfs/` にRAG用のPDFを配置してから起動してください。
 
-**Docker Compose で起動する場合（推奨・本番と同じ2コンテナ構成）**
+**Docker を使う場合**
 
 ```bash
-docker compose up --build
+docker build -t roleup .
+docker run --env-file .env -p 8080:8080 roleup
 ```
 
-| サービス | URL | 説明 |
-|---|---|---|
-| Chainlit UI | `http://localhost:8080` | ロールプレイのチャット画面 |
-| FastAPI Swagger | `http://localhost:8000/docs` | REST APIの動作確認画面 |
-
-**個別に起動する場合**
+**Google Cloud Run にデプロイする場合**
 
 ```bash
-# FastAPIを起動（先に起動する）
-cd app
-uvicorn api:app --reload     # http://localhost:8000
+# Cloud Build でイメージをビルド・プッシュ
+gcloud builds submit . --config cloudbuild.yaml --project YOUR_PROJECT_ID
 
-# Chainlitを起動（別ターミナルで）
-chainlit run app/main.py     # http://localhost:8080
+# Cloud Run にデプロイ
+gcloud run deploy roleup \
+  --image asia.gcr.io/YOUR_PROJECT_ID/roleup:latest \
+  --region asia-northeast1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --set-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest" \
+  --memory 1Gi \
+  --min-instances 1 \
+  --timeout 3600
 ```
 
-**Google Cloud Run へのデプロイ（CI/CD自動化済み）**
-
-`main` ブランチへの push で以下が自動実行されます。
-
-| トリガー | 自動実行内容 | 設定ファイル |
-|---|---|---|
-| `roleup-api-deploy` | pytest → ビルド → Cloud Runデプロイ（FastAPI） | `cloudbuild.api.yaml` |
-| `roleup-deploy` | ビルド → Cloud Runデプロイ（Chainlit） | `cloudbuild.yaml` |
-
-> テストが失敗した場合はビルド・デプロイがキャンセルされます。
+> Secret Manager に `OPENAI_API_KEY` を事前に登録してください。
 
 ## 🚀 使い方
-
-### Chainlit UI で使う場合（本番・推奨）
 
 1. 🎚️ 難易度を選択する（初級・中級・上級）
 2. 📋 シナリオを選択する（解約引き止め・請求トラブルなど）
 3. 💬 顧客役AIとチャットで模擬対応を行う
 4. ✅ 「対応終了」と入力するとフィードバックが表示される
-
-### REST API で使う場合（APIテスト・動作確認用）
-
-`http://localhost:8000/docs` をブラウザで開くとSwagger UIが表示され、画面上でAPIを試せます。
-
-**APIエンドポイント一覧**
-
-| メソッド | パス | 説明 |
-|---|---|---|
-| GET | `/api/v1/health` | サーバーの死活確認 |
-| GET | `/api/v1/options` | 難易度・シナリオの選択肢を取得 |
-| POST | `/api/v1/sessions` | セッション作成（会話の開始準備） |
-| POST | `/api/v1/sessions/{id}/start` | 難易度・シナリオを選択して顧客役AIの第一声を取得 |
-| POST | `/api/v1/sessions/{id}/messages` | メッセージを送信して顧客役AIの返答を取得 |
-| POST | `/api/v1/sessions/{id}/feedback` | 会話全体のフィードバックを取得 |
 
 
 ▼ 起動時の画面
@@ -193,6 +155,24 @@ chainlit run app/main.py     # http://localhost:8080
 ▼ フィードバック表示画面
 
 <img width="1899" height="708" alt="スクリーンショット 2026-04-15 154007" src="https://github.com/user-attachments/assets/32844a13-ecc9-432d-81fc-6a7ac5815403" />
+
+## 🌐 デプロイ済みURL
+
+**本番環境（Google Cloud Run）:**
+https://roleup-498951365205.asia-northeast1.run.app
+
+## 🖥️ 使用環境
+
+| 項目 | 内容 |
+|---|---|
+| OS | Windows 11（Windows環境で開発・動作確認） |
+| Python | 3.11 |
+| フレームワーク | Chainlit |
+| LLM | OpenAI API（LangChain経由） |
+| ベクトルDB | FAISS |
+| コンテナ | Docker |
+| 主なライブラリ | LangChain, langchain-openai, langchain-community, PyMuPDF, FAISS |
+| デプロイ | Google Cloud Run（asia-northeast1） |
 
 ## 🔮 今後の拡張予定
 
