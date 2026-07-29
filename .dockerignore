@@ -4,4 +4,5 @@ __pycache__/
 .git/
 README.md
 GITHUB_RULES.md
+cloudbuild.yaml
 *.pyc
