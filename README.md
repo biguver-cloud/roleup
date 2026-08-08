@@ -38,18 +38,27 @@ https://roleup-498951365205.asia-northeast1.run.app
 ```
 roleup/
 ├── app/
-│   ├── main.py        # Chainlitエントリーポイント・UI制御
+│   ├── main.py        # Chainlit UI（フロントエンド）
+│   ├── api.py         # FastAPIエントリーポイント・CORS設定
+│   ├── api_routes.py  # FastAPI REST APIエンドポイント定義
+│   ├── schemas.py     # APIリクエスト・レスポンスのPydantic型定義
 │   ├── agent.py       # AI応答・フィードバック生成ロジック
 │   ├── prompts.py     # プロンプト管理（ロールプレイ・フィードバック）
 │   └── rag.py         # PDFナレッジ読み込み・ベクトル検索
 ├── date/
 │   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
-├── .chainlit/         # Chainlit設定ファイル
-├── chainlit.md        # Chainlitウェルカムメッセージ
-├── cloudbuild.yaml    # Cloud Build設定（GCRへのイメージビルド）
-├── Dockerfile         # Dockerイメージビルド定義
-├── GITHUB_RULES.md    # GitHub運用ルール
-├── requirements.txt   # 依存パッケージ一覧
+├── tests/
+│   ├── conftest.py        # テスト設定・フィクスチャ
+│   └── test_api_routes.py # APIエンドポイントのテスト
+├── .chainlit/             # Chainlit設定ファイル
+├── chainlit.md            # Chainlitウェルカムメッセージ
+├── cloudbuild.yaml        # Cloud Build設定（Chainlit：ビルド→デプロイ）
+├── cloudbuild.api.yaml    # Cloud Build設定（FastAPI：テスト→ビルド→デプロイ）
+├── Dockerfile             # ChainlitコンテナのDockerイメージ
+├── Dockerfile.api         # FastAPIコンテナのDockerイメージ
+├── docker-compose.yml     # 2コンテナ構成の起動定義
+├── requirements.txt       # 依存パッケージ一覧
+├── requirements-dev.txt   # 開発・テスト用パッケージ一覧
 └── README.md
 ```
 
