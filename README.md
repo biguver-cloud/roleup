@@ -29,10 +29,6 @@ https://roleup-498951365205.asia-northeast1.run.app
 - 📈 初級から上級まで段階的な難易度を設けることで新人から経験者まで幅広く対応できる設計にした
 - 🎭 シナリオは実務で頻出の場面（解約・請求・クレーム・新規契約）を厳選した
 
-## 📋 GitHub運用ルール
-
-チーム開発を想定した運用ルールを定めています。詳細は [GITHUB_RULES.md](GITHUB_RULES.md) をご参照ください。
-
 ## 📁 ディレクトリ構成
 
 ```
@@ -76,37 +72,40 @@ roleup/
 | PyMuPDF | PDFナレッジの読み込み |
 | Docker | アプリケーションのコンテナ化・環境統一 |
 | Google Cloud Run | サーバーレスコンテナデプロイ |
-| Google Artifact Registry / GCR | コンテナイメージ管理 |
-| Google Secret Manager | APIキーの安全な管理 |
 
 ## 🏗️ アーキテクチャ図
 
 ```mermaid
-
 flowchart TD
-    User["👤 ユーザー（オペレーター）"]
+    User["👤 ユーザー"]
     OpenAI["☁️ OpenAI API\nGPT-4o-mini"]
 
-    subgraph Docker["🐳 Docker コンテナ"]
-        UI["🖥️ Chainlit UI\nmain.py"]
-        Agent["🤖 AIエージェント\nagent.py"]
-        Prompts["📝 プロンプト管理\nprompts.py"]
-        RAG["🔍 RAG検索\nrag.py"]
-        PDF["📄 PDFナレッジ\ndate/pdfs/"]
-        FAISS["🗄️ FAISSベクトルDB"]
+    subgraph CloudRun["☁️ Google Cloud Run（本番環境）"]
+        subgraph ChainlitSvc["🐳 Chainlitサービス\n（Dockerfile）"]
+            Chainlit["🖥️ Chainlit UI\nmain.py"]
+        end
+        subgraph FastAPISvc["🐳 FastAPIサービス\n（Dockerfile.api）"]
+            API["⚡ FastAPI 仲介層\napi.py / api_routes.py / schemas.py"]
+            Agent["🤖 AIエージェント\nagent.py"]
+            Prompts["📝 プロンプト管理\nprompts.py"]
+            RAG["🔍 RAG検索\nrag.py"]
+            PDF["📄 PDFナレッジ\ndate/pdfs/"]
+            FAISS["🗄️ FAISSベクトルDB"]
+        end
     end
 
-    User -->|メッセージ送信\nCloud Run URL| UI
-    UI -->|応答生成リクエスト| Agent
-    UI -->|フィードバックリクエスト| Agent
+    User -->|チャット操作| Chainlit
+    Chainlit -->|"HTTP POST /api/v1/..."| API
+    API -->|処理委譲| Agent
     Agent -->|プロンプト構築| Prompts
     Agent -->|ナレッジ検索| RAG
     RAG -->|PDF読み込み| PDF
     RAG -->|ベクトル検索| FAISS
     Agent -->|API呼び出し| OpenAI
     OpenAI -->|応答・フィードバック| Agent
-    Agent -->|結果返却| UI
-    UI -->|表示| User
+    Agent -->|JSONレスポンス| API
+    API -->|JSONレスポンス| Chainlit
+    Chainlit -->|チャット表示| User
 ```
 
 ## ⚙️ セットアップ手順
@@ -169,19 +168,6 @@ gcloud run deploy roleup \
 ▼ フィードバック表示画面
 
 <img width="1899" height="708" alt="スクリーンショット 2026-04-15 154007" src="https://github.com/user-attachments/assets/32844a13-ecc9-432d-81fc-6a7ac5815403" />
-
-## 🖥️ 使用環境
-
-| 項目 | 内容 |
-|---|---|
-| OS | Windows 11（Windows環境で開発・動作確認） |
-| Python | 3.11 |
-| フレームワーク | Chainlit |
-| LLM | OpenAI API（LangChain経由） |
-| ベクトルDB | FAISS |
-| コンテナ | Docker |
-| 主なライブラリ | LangChain, langchain-openai, langchain-community, PyMuPDF, FAISS |
-| デプロイ | Google Cloud Run（asia-northeast1） |
 
 ## 🔮 今後の拡張予定
 
