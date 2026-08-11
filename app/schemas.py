@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Literal
 
 Difficulty = Literal["初級", "中級", "上級"]
-Scenario = Literal["解約引き止め", "請求トラブル", "初歩的な使い方質問", "クレーム対応", "新規契約・CV獲得"]
+Scenario = Literal["解約引き止め", "請求トラブル", "初歩的な使い方質問", "クレーム対応", "新規契約・CV獲得", "ランダム"]
 
 
 class CreateSessionResponse(BaseModel):

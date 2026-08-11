@@ -71,6 +71,12 @@ class TestOptions:
         assert "クレーム対応" in scenarios
         assert "新規契約・CV獲得" in scenarios
 
+    def test_シナリオにランダムが含まれる(self, client):
+        resp = client.get("/api/v1/options")
+
+        scenarios = resp.json()["scenarios"]
+        assert "ランダム" in scenarios
+
 
 # =============================================================================
 # POST /api/v1/sessions
@@ -154,6 +160,17 @@ class TestStartRoleplay:
         resp = client.post(f"/api/v1/sessions/{session_id}/start", json={})
 
         assert resp.status_code == 422
+
+    def test_正常系_ランダムシナリオで第一声が返る(self, client, session_id):
+        resp = client.post(
+            f"/api/v1/sessions/{session_id}/start",
+            json={"difficulty": "初級", "scenario": "ランダム"},
+        )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "first_message" in data
+        assert data["first_message"] != ""
 
 
 # =============================================================================
