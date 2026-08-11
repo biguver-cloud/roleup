@@ -155,6 +155,17 @@ class TestStartRoleplay:
 
         assert resp.status_code == 422
 
+    def test_正常系_ランダムシナリオで第一声が返る(self, client, session_id):
+        resp = client.post(
+            f"/api/v1/sessions/{session_id}/start",
+            json={"difficulty": "初級", "scenario": "ランダム"},
+        )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "first_message" in data
+        assert data["first_message"] != ""
+
 
 # =============================================================================
 # POST /api/v1/sessions/{session_id}/messages

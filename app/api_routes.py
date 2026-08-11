@@ -1,4 +1,5 @@
 import uuid
+import random
 from fastapi import APIRouter, HTTPException
 from langchain_core.messages import HumanMessage, AIMessage
 
@@ -51,12 +52,18 @@ async def start_roleplay(session_id: str, body: StartRoleplayRequest):
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
+    scenario = (
+        random.choice(list(SCENARIO_SETTINGS.keys()))
+        if body.scenario == "ランダム"
+        else body.scenario
+    )
+
     session["difficulty"] = body.difficulty
-    session["scenario"] = body.scenario
+    session["scenario"] = scenario
     session["is_active"] = True
     session["conversation_history"] = []
 
-    first_message = get_roleplay_response(body.difficulty, body.scenario, [])
+    first_message = get_roleplay_response(body.difficulty, scenario, [])
     session["conversation_history"].append(AIMessage(content=first_message))
 
     return StartRoleplayResponse(session_id=session_id, first_message=first_message)
