@@ -38,6 +38,7 @@ async def on_difficulty_selected(action: cl.Action):
             cl.Action(name="scenario", payload={"value": "初歩的な使い方質問"}, label="初歩的な使い方質問"),
             cl.Action(name="scenario", payload={"value": "クレーム対応"}, label="クレーム対応"),
             cl.Action(name="scenario", payload={"value": "新規契約・CV獲得"}, label="新規契約・CV獲得"),
+            cl.Action(name="scenario", payload={"value": "ランダム"}, label="ランダム"),
         ]
     ).send()
 
