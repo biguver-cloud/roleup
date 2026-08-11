@@ -71,6 +71,12 @@ class TestOptions:
         assert "クレーム対応" in scenarios
         assert "新規契約・CV獲得" in scenarios
 
+    def test_シナリオにランダムが含まれる(self, client):
+        resp = client.get("/api/v1/options")
+
+        scenarios = resp.json()["scenarios"]
+        assert "ランダム" in scenarios
+
 
 # =============================================================================
 # POST /api/v1/sessions

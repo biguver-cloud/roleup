@@ -30,7 +30,7 @@ async def health():
 async def get_options():
     return OptionsResponse(
         difficulties=list(DIFFICULTY_SETTINGS.keys()),
-        scenarios=list(SCENARIO_SETTINGS.keys()),
+        scenarios=list(SCENARIO_SETTINGS.keys()) + ["ランダム"],
     )
 
 
