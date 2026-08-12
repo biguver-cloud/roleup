@@ -9,6 +9,12 @@ steps:
       - 'asia.gcr.io/$PROJECT_ID/roleup'
       - '.'
 
+  # --- プッシュ ---
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'asia.gcr.io/$PROJECT_ID/roleup'
+
   # --- デプロイ ---
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
