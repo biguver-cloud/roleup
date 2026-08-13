@@ -108,34 +108,6 @@ flowchart TD
     Chainlit -->|チャット表示| User
 ```
 
-## 🔄 CI/CD
-
-main ブランチへの push をトリガーに、Google Cloud Build が自動でテスト・ビルド・デプロイを実行します。
-
-### パイプライン構成
-
-| サービス | 設定ファイル | パイプライン |
-|---|---|---|
-| Chainlit（フロントエンド） | `cloudbuild.yaml` | build → push → deploy |
-| FastAPI（バックエンド） | `cloudbuild.api.yaml` | test → build → push → deploy |
-
-```mermaid
-flowchart LR
-    Push["🔀 main へ push / merge"]
-
-    Push --> TriggerChainlit["Cloud Build トリガー\n（roleup）"]
-    Push --> TriggerAPI["Cloud Build トリガー\n（roleup-api）"]
-
-    TriggerChainlit --> BuildC["🐳 Docker build\n（Dockerfile）"]
-    BuildC --> PushC["📦 GCR へ push"]
-    PushC --> DeployC["🚀 Cloud Run deploy\n（roleup）"]
-
-    TriggerAPI --> Test["🧪 pytest"]
-    Test --> BuildA["🐳 Docker build\n（Dockerfile.api）"]
-    BuildA --> PushA["📦 GCR へ push"]
-    PushA --> DeployA["🚀 Cloud Run deploy\n（roleup-api）"]
-```
-
 ## ⚙️ セットアップ手順
 
 ```bash
@@ -158,6 +130,11 @@ docker run --env-file .env -p 8080:8080 roleup
 ```
 
 **Google Cloud Run にデプロイする場合**
+
+main ブランチへの push で Cloud Build が自動的にテスト・ビルド・デプロイを実行します（CI/CD）。
+設定ファイル：`cloudbuild.yaml`（Chainlit）/ `cloudbuild.api.yaml`（FastAPI）
+
+手動でデプロイする場合：
 
 ```bash
 # Cloud Build でイメージをビルド・プッシュ
