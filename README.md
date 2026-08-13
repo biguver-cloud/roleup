@@ -72,6 +72,7 @@ roleup/
 | PyMuPDF | PDFナレッジの読み込み |
 | Docker | アプリケーションのコンテナ化・環境統一 |
 | Google Cloud Run | サーバーレスコンテナデプロイ |
+| Google Cloud Build | CI/CDパイプライン（自動テスト・ビルド・デプロイ） |
 
 ## 🏗️ アーキテクチャ図
 
