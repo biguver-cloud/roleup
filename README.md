@@ -72,6 +72,7 @@ roleup/
 | PyMuPDF | PDFナレッジの読み込み |
 | Docker | アプリケーションのコンテナ化・環境統一 |
 | Google Cloud Run | サーバーレスコンテナデプロイ |
+| Google Cloud Build | CI/CDパイプライン（自動テスト・ビルド・デプロイ） |
 
 ## 🏗️ アーキテクチャ図
 
@@ -130,6 +131,11 @@ docker run --env-file .env -p 8080:8080 roleup
 ```
 
 **Google Cloud Run にデプロイする場合**
+
+main ブランチへの push で Cloud Build が自動的にテスト・ビルド・デプロイを実行します（CI/CD）。
+設定ファイル：`cloudbuild.yaml`（Chainlit）/ `cloudbuild.api.yaml`（FastAPI）
+
+手動でデプロイする場合：
 
 ```bash
 # Cloud Build でイメージをビルド・プッシュ
