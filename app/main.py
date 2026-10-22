@@ -5,6 +5,14 @@ import chainlit as cl
 FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")
 
 
+def difficulty_actions() -> list[cl.Action]:
+    return [
+        cl.Action(name="difficulty", payload={"value": "初級"}, label="初級"),
+        cl.Action(name="difficulty", payload={"value": "中級"}, label="中級"),
+        cl.Action(name="difficulty", payload={"value": "上級"}, label="上級"),
+    ]
+
+
 @cl.on_chat_start
 async def on_chat_start():
     async with httpx.AsyncClient() as client:
@@ -17,11 +25,7 @@ async def on_chat_start():
 
     await cl.Message(
         content="🎯 RoleUpへようこそ！\nまず難易度を選択してください。",
-        actions=[
-            cl.Action(name="difficulty", payload={"value": "初級"}, label="初級"),
-            cl.Action(name="difficulty", payload={"value": "中級"}, label="中級"),
-            cl.Action(name="difficulty", payload={"value": "上級"}, label="上級"),
-        ]
+        actions=difficulty_actions(),
     ).send()
 
 
@@ -84,6 +88,13 @@ async def on_message(message: cl.Message):
             feedback = resp.json()["feedback"]
 
         await cl.Message(content=f"📊 フィードバック\n\n{feedback}").send()
+
+        # 終了後はシナリオ未選択に戻し、終了済みセッションへの送信(400)を防ぐ
+        cl.user_session.set("scenario", None)
+        await cl.Message(
+            content="続けて練習する場合は、難易度を選択してください。",
+            actions=difficulty_actions(),
+        ).send()
         return
 
     async with httpx.AsyncClient(timeout=60.0) as client:
