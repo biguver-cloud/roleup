@@ -5,6 +5,21 @@ import chainlit as cl
 FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")
 
 
+def restart_action() -> cl.Action:
+    return cl.Action(name="restart", payload={}, label="もう一度練習する")
+
+
+async def send_difficulty_selection(content: str):
+    await cl.Message(
+        content=content,
+        actions=[
+            cl.Action(name="difficulty", payload={"value": "初級"}, label="初級"),
+            cl.Action(name="difficulty", payload={"value": "中級"}, label="中級"),
+            cl.Action(name="difficulty", payload={"value": "上級"}, label="上級"),
+        ]
+    ).send()
+
+
 @cl.on_chat_start
 async def on_chat_start():
     async with httpx.AsyncClient() as client:
@@ -14,15 +29,16 @@ async def on_chat_start():
 
     cl.user_session.set("session_id", session_id)
     cl.user_session.set("scenario", None)
+    cl.user_session.set("is_finished", False)
 
-    await cl.Message(
-        content="🎯 RoleUpへようこそ！\nまず難易度を選択してください。",
-        actions=[
-            cl.Action(name="difficulty", payload={"value": "初級"}, label="初級"),
-            cl.Action(name="difficulty", payload={"value": "中級"}, label="中級"),
-            cl.Action(name="difficulty", payload={"value": "上級"}, label="上級"),
-        ]
-    ).send()
+    await send_difficulty_selection("🎯 RoleUpへようこそ！\nまず難易度を選択してください。")
+
+
+@cl.action_callback("restart")
+async def on_restart(action: cl.Action):
+    # /start で会話履歴が初期化されるため、既存の session_id をそのまま使う
+    cl.user_session.set("is_finished", False)
+    await send_difficulty_selection("難易度を選択してください。")
 
 
 @cl.action_callback("difficulty")
@@ -47,6 +63,7 @@ async def on_difficulty_selected(action: cl.Action):
 async def on_scenario_selected(action: cl.Action):
     value = action.payload["value"]
     cl.user_session.set("scenario", value)
+    cl.user_session.set("is_finished", False)
 
     difficulty = cl.user_session.get("difficulty")
     session_id = cl.user_session.get("session_id")
@@ -71,6 +88,13 @@ async def on_message(message: cl.Message):
     session_id = cl.user_session.get("session_id")
     scenario = cl.user_session.get("scenario")
 
+    if cl.user_session.get("is_finished"):
+        await cl.Message(
+            content="ロールプレイは終了しました。もう一度練習する場合はボタンを押してください。",
+            actions=[restart_action()],
+        ).send()
+        return
+
     if scenario is None:
         await cl.Message(content="まず難易度とシナリオを選択してください。").send()
         return
@@ -83,7 +107,14 @@ async def on_message(message: cl.Message):
             resp.raise_for_status()
             feedback = resp.json()["feedback"]
 
-        await cl.Message(content=f"📊 フィードバック\n\n{feedback}").send()
+        # API側のセッションは非アクティブになるため、終了済みセッションへの送信(400)を防ぐ
+        cl.user_session.set("scenario", None)
+        cl.user_session.set("is_finished", True)
+
+        await cl.Message(
+            content=f"📊 フィードバック\n\n{feedback}",
+            actions=[restart_action()],
+        ).send()
         return
 
     async with httpx.AsyncClient(timeout=60.0) as client:
