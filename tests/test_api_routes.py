@@ -25,6 +25,10 @@ RoleUp API エンドポイントのテスト
 
 import uuid
 
+import pytest
+
+import api_routes
+
 
 # =============================================================================
 # GET /api/v1/health
@@ -272,3 +276,58 @@ class TestFeedback:
         resp = client.post(f"/api/v1/sessions/{session_id}/feedback")
 
         assert resp.status_code == 400
+
+
+# =============================================================================
+# 応答生成（OpenAI）が失敗した場合のセッション状態
+# =============================================================================
+class TestGenerationFailure:
+    """
+    応答生成に失敗してもセッションが中途半端な状態にならないことを確認する。
+
+    Chainlit 側はエラー時に案内を出して同じ操作をやり直せるようにしているため、
+    API 側のセッション状態は失敗前のまま保たれている必要がある。
+    TestClient はサーバー内の例外をそのまま送出するので、pytest.raises で受け止める。
+    """
+
+    def test_startが失敗してもセッションは開始されない(self, client, session_id, monkeypatch):
+        monkeypatch.setattr(api_routes, "get_roleplay_response", _raise_error)
+
+        with pytest.raises(RuntimeError):
+            client.post(
+                f"/api/v1/sessions/{session_id}/start",
+                json={"difficulty": "初級", "scenario": "解約引き止め"},
+            )
+
+        session = api_routes._sessions[session_id]
+        assert session["is_active"] is False
+        assert session["conversation_history"] == []
+
+    def test_メッセージ送信が失敗しても会話履歴に残らない(self, client, started_session, monkeypatch):
+        history_before = list(api_routes._sessions[started_session]["conversation_history"])
+        monkeypatch.setattr(api_routes, "get_roleplay_response", _raise_error)
+
+        with pytest.raises(RuntimeError):
+            client.post(
+                f"/api/v1/sessions/{started_session}/messages",
+                json={"content": "テスト"},
+            )
+
+        assert api_routes._sessions[started_session]["conversation_history"] == history_before
+
+    def test_フィードバックが失敗してもロールプレイを続行できる(self, client, started_session, monkeypatch):
+        monkeypatch.setattr(api_routes, "get_feedback", _raise_error)
+
+        with pytest.raises(RuntimeError):
+            client.post(f"/api/v1/sessions/{started_session}/feedback")
+
+        monkeypatch.undo()
+        resp = client.post(
+            f"/api/v1/sessions/{started_session}/messages",
+            json={"content": "テスト"},
+        )
+        assert resp.status_code == 200
+
+
+def _raise_error(*args, **kwargs):
+    raise RuntimeError("OpenAI API error")
