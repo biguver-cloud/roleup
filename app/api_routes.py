@@ -58,13 +58,13 @@ async def start_roleplay(session_id: str, body: StartRoleplayRequest):
         else body.scenario
     )
 
+    # 応答生成に失敗した場合にセッションを中途半端な状態にしないよう、成功後に更新する
+    first_message = get_roleplay_response(body.difficulty, scenario, [])
+
     session["difficulty"] = body.difficulty
     session["scenario"] = scenario
     session["is_active"] = True
-    session["conversation_history"] = []
-
-    first_message = get_roleplay_response(body.difficulty, scenario, [])
-    session["conversation_history"].append(AIMessage(content=first_message))
+    session["conversation_history"] = [AIMessage(content=first_message)]
 
     return StartRoleplayResponse(session_id=session_id, first_message=first_message)
 
@@ -77,15 +77,14 @@ async def send_message(session_id: str, body: SendMessageRequest):
     if not session["is_active"]:
         raise HTTPException(status_code=400, detail="Roleplay is not active. Call /start first.")
 
-    history = session["conversation_history"]
-    history.append(HumanMessage(content=body.content))
-
+    # 応答生成に失敗した場合は履歴に残さず、同じメッセージを再送できるようにする
+    user_message = HumanMessage(content=body.content)
     response = get_roleplay_response(
         session["difficulty"],
         session["scenario"],
-        history,
+        session["conversation_history"] + [user_message],
     )
-    history.append(AIMessage(content=response))
+    session["conversation_history"] += [user_message, AIMessage(content=response)]
 
     return SendMessageResponse(session_id=session_id, message=response)
 
@@ -98,7 +97,8 @@ async def get_session_feedback(session_id: str):
     if not session["conversation_history"]:
         raise HTTPException(status_code=400, detail="No conversation history to evaluate.")
 
-    session["is_active"] = False
+    # 生成に失敗した場合はロールプレイを続行できるよう、成功後に非アクティブにする
     feedback = get_feedback(session["conversation_history"])
+    session["is_active"] = False
 
     return FeedbackResponse(session_id=session_id, feedback=feedback)
