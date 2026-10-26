@@ -39,6 +39,7 @@ roleup/
 │   ├── api.py         # FastAPIエントリーポイント・CORS設定
 │   ├── api_routes.py  # FastAPI REST APIエンドポイント定義
 │   ├── schemas.py     # APIリクエスト・レスポンスのPydantic型定義
+│   ├── session_store.py # セッションの保存先（メモリ / Firestore）
 │   ├── agent.py       # AI応答・フィードバック生成ロジック
 │   ├── prompts.py     # プロンプト管理（ロールプレイ・フィードバック）
 │   └── rag.py         # PDFナレッジ読み込み・ベクトル検索
@@ -46,7 +47,8 @@ roleup/
 │   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
 ├── tests/
 │   ├── conftest.py        # テスト設定・フィクスチャ
-│   └── test_api_routes.py # APIエンドポイントのテスト
+│   ├── test_api_routes.py # APIエンドポイントのテスト
+│   └── test_session_store.py # セッション保存先のテスト
 ├── .chainlit/             # Chainlit設定ファイル
 ├── chainlit.md            # Chainlitウェルカムメッセージ
 ├── cloudbuild.yaml        # Cloud Build設定（Chainlit：ビルド→デプロイ）
@@ -74,6 +76,7 @@ roleup/
 | Docker | アプリケーションのコンテナ化・環境統一 |
 | Google Cloud Run | サーバーレスコンテナデプロイ |
 | Google Cloud Build | CI/CDパイプライン（自動テスト・ビルド・デプロイ） |
+| Google Cloud Firestore | セッション（会話履歴など）の保存 |
 
 ## 🏗️ アーキテクチャ図
 
@@ -155,6 +158,33 @@ gcloud run deploy roleup \
 ```
 
 > Secret Manager に `OPENAI_API_KEY` を事前に登録してください。
+
+**セッションの保存先を Firestore にする場合（FastAPI）**
+
+セッションは環境変数 `SESSION_STORE` で保存先を切り替えます（既定は `memory`）。
+`memory` はインスタンスの再起動やスケールアウトでセッションが消えるため、Cloud Run では `firestore` を使います。
+
+```bash
+# Firestore（ネイティブモード）のデータベースを作成
+gcloud firestore databases create --location=asia-northeast1 --project YOUR_PROJECT_ID
+
+# 期限切れのセッションを自動削除する TTL ポリシーを設定
+gcloud firestore fields ttls update expires_at   --collection-group=sessions --enable-ttl --project YOUR_PROJECT_ID
+
+# FastAPI サービスのサービスアカウントに Firestore の読み書き権限を付与
+gcloud projects add-iam-policy-binding YOUR_PROJECT_ID   --member "serviceAccount:SERVICE_ACCOUNT_EMAIL"   --role roles/datastore.user
+
+# FastAPI サービスの環境変数を設定
+gcloud run services update roleup-api   --region asia-northeast1   --update-env-vars SESSION_STORE=firestore
+```
+
+| 環境変数 | 既定値 | 説明 |
+|---|---|---|
+| `SESSION_STORE` | `memory` | セッションの保存先（`memory` / `firestore`） |
+| `SESSION_TTL_HOURS` | `24` | 最後に更新してからセッションを削除するまでの時間 |
+| `FIRESTORE_COLLECTION` | `sessions` | セッションを保存するコレクション名 |
+
+> TTL ポリシーによる削除は即時ではありません（期限切れから最大24時間程度）。期限切れのセッションは取得時にも無効として扱います。
 
 ## 🚀 使い方
 
