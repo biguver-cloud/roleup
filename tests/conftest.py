@@ -27,6 +27,7 @@ sys.modules['agent'] = _agent_mock
 from fastapi.testclient import TestClient  # noqa: E402
 from api import app                         # noqa: E402
 import api_routes                           # noqa: E402
+from session_store import InMemorySessionStore  # noqa: E402
 
 
 # ===== フィクスチャ定義 =====
@@ -35,17 +36,15 @@ import api_routes                           # noqa: E402
 # テスト関数の引数に書くと pytest が自動で注入してくれる。
 
 @pytest.fixture(autouse=True)
-def clear_sessions():
+def clear_sessions(monkeypatch):
     """
-    テストごとにセッションデータをリセットする。
+    テストごとにセッションの保存先を空のインメモリストアに差し替える。
 
-    api_routes._sessions はモジュールレベルの dict なので、
-    テストをまたいでデータが残り続ける。
+    api_routes.session_store はモジュールレベルの変数なので、
+    そのままだとテストをまたいでデータが残り続ける。
     autouse=True にすると全テストで自動的に呼ばれる。
     """
-    api_routes._sessions.clear()
-    yield
-    api_routes._sessions.clear()
+    monkeypatch.setattr(api_routes, "session_store", InMemorySessionStore())
 
 
 @pytest.fixture
