@@ -44,10 +44,14 @@ roleup/
 │   ├── prompts.py     # プロンプト管理（ロールプレイ・フィードバック）
 │   └── rag.py         # PDFナレッジ読み込み・ベクトル検索
 ├── date/
-│   └── pdfs/          # RAG用PDFナレッジ格納フォルダ
+│   ├── pdfs/          # RAG用PDFナレッジ格納フォルダ
+│   └── faiss_index/   # PDFから作成したベクトルDB（FAISSのインデックス）
+├── scripts/
+│   └── build_index.py # ベクトルDB（インデックス）の作成スクリプト
 ├── tests/
 │   ├── conftest.py        # テスト設定・フィクスチャ
 │   ├── test_api_routes.py # APIエンドポイントのテスト
+│   ├── test_rag.py        # ベクトルDBのテスト
 │   └── test_session_store.py # セッション保存先のテスト
 ├── .chainlit/             # Chainlit設定ファイル
 ├── chainlit.md            # Chainlitウェルカムメッセージ
@@ -95,7 +99,8 @@ flowchart TD
             Prompts["📝 プロンプト管理\nprompts.py"]
             RAG["🔍 RAG検索\nrag.py"]
             PDF["📄 PDFナレッジ\ndate/pdfs/"]
-            FAISS["🗄️ FAISSベクトルDB"]
+            FAISS["🗄️ FAISSベクトルDB
+date/faiss_index/"]
         end
     end
 
@@ -104,8 +109,9 @@ flowchart TD
     API -->|処理委譲| Agent
     Agent -->|プロンプト構築| Prompts
     Agent -->|ナレッジ検索| RAG
-    RAG -->|PDF読み込み| PDF
-    RAG -->|ベクトル検索| FAISS
+    PDF -.->|事前にインデックス化
+scripts/build_index.py| FAISS
+    RAG -->|インデックス読み込み・ベクトル検索| FAISS
     Agent -->|API呼び出し| OpenAI
     OpenAI -->|応答・フィードバック| Agent
     Agent -->|JSONレスポンス| API
@@ -125,7 +131,19 @@ cp .env.example .env         # .env を開いて OPENAI_API_KEY を入力
 chainlit run app/main.py     # http://localhost:8080
 ```
 
-> `date/pdfs/` にRAG用のPDFを配置してから起動してください。
+> RAG用のPDFは `date/pdfs/` に、PDFから作成したベクトルDB（FAISSのインデックス）は `date/faiss_index/` に格納しています。
+> 起動時はインデックスを読み込むだけで、Embedding API は呼び出しません。
+
+**RAG用のPDFを追加・更新する場合**
+
+PDFを `date/pdfs/` に配置したら、インデックスを作り直してPDFと一緒にコミットしてください。
+
+```bash
+python scripts/build_index.py   # .env の OPENAI_API_KEY を使って Embedding API を呼び出す
+```
+
+> インデックスを作り直さずにPDFを変更すると、テスト（`tests/test_rag.py`）が失敗します。
+> 起動時にインデックスが無い・古い場合は、PDFから構築し直してから起動します（起動が遅くなります）。
 
 **Docker を使う場合**
 

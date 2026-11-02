@@ -5,12 +5,10 @@ load_dotenv()
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from prompts import build_roleplay_prompt, build_feedback_prompt
-from rag import build_vectorstore, search_knowledge
+from rag import load_vectorstore, search_knowledge
 
-# アプリ起動時にベクトルDBを構築する
-print("ベクトルDB構築中...")
-vectorstore = build_vectorstore()
-print("ベクトルDB構築完了！")
+# アプリ起動時にベクトルDBを用意する（保存済みのインデックスがあれば読み込むだけ）
+vectorstore = load_vectorstore()
 
 # AIモデルの設定
 llm = ChatOpenAI(

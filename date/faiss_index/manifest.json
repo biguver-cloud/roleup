@@ -1,0 +1,9 @@
+{
+  "embedding_model": "text-embedding-ada-002",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "pdfs": {
+    "デモSIM クレーム対応マニュアル.pdf": "cecf862b4dec98f5d64a1ebca4a4baee9fa824c09bf4decb13f5733fdcdfe9ea",
+    "デモSIMサービスナレッジ.pdf": "48358d008a1653de22a0fe6e4b7489993819bb634a375f53d042262414d6162d"
+  }
+}
