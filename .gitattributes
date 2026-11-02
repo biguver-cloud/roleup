@@ -1,0 +1,4 @@
+# FAISS のインデックスはバイナリとして扱う（改行コードを変換しない）
+date/faiss_index/*.faiss binary
+date/faiss_index/*.pkl binary
+*.pdf binary
